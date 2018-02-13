@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MyApp.cpp" />
+    <ClCompile Include="..\..\OGLPack\include\imgui\imgui.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OGLPack\include\imgui\imgui_draw.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MyApp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Extern">
+      <UniqueIdentifier>{b6a5bbbe-9945-4da9-bc4c-f34e0b1f1b26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Extern\imgui">
+      <UniqueIdentifier>{a8f95f8b-6015-4ef8-b2a7-d8bdf69272cf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
