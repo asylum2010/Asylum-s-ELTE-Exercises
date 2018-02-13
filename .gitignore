@@ -26,3 +26,8 @@
 *.nativecodeanalysis.xml
 *.rc
 *.cache
+*.db
+*.opendb
+*.dll
+*.ini
+
