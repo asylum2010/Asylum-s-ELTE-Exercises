@@ -2,6 +2,7 @@
 #define _MYAPP_H_
 
 #include <memory>
+#include <unordered_map>
 
 #include <GL/glew.h>
 #include <SDL.h>
@@ -10,6 +11,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform2.hpp>
+
+#include "../../Framework/GeometryUtils.h"
+#include "../../Framework/ShaderUtils.h"
 
 class CMyApp
 {
@@ -32,8 +36,17 @@ public:
 	void Resize(int, int);
 
 private:
-	int windowWidth;
-	int windowHeight;
+	int				windowWidth;
+	int				windowHeight;
+	uint32_t		numSphereVertices;
+	uint32_t		numSphereIndices;
+	UniformTable	uniformLocs;	// location of active uniforms
+
+	// GL objects
+	GLuint			sphereVBO;
+	GLuint			sphereIBO;
+	GLuint			inputLayout;	// VAO
+	GLuint			program;		// shader program
 };
 
 #endif

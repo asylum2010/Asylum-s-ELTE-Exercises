@@ -41,15 +41,15 @@ int main(int argc, char* args[])
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 	// setup swapchain
-	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,		32);
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE,		8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,		8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,		8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,		8);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,	1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,		24);
+	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,			32);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE,			8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,			8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,			8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,			8);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,		1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,			24);
 	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,	1);
-	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,	2);
+	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,	4);
 
 	// create window
 	SDL_Window* win = SDL_CreateWindow(
@@ -89,7 +89,8 @@ int main(int argc, char* args[])
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
 
-	assert(major >= 3 || (major == 3 && minor >= 2));
+	// support GL 3.3 only (7+ years old...)
+	assert(major >= 3 || (major == 3 && minor >= 3));
 	std::cout << "OpenGL version is GL " << major << "." << minor << std::endl;
 
 	// initialize UI
@@ -178,6 +179,7 @@ int main(int argc, char* args[])
 			SDL_GL_SwapWindow(win);
 		}
 
+		// release GL objects
 		app.Clean();
 	}
 

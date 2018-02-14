@@ -12,9 +12,21 @@
     <ClCompile Include="..\..\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp">
       <Filter>Extern\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Framework\GeometryUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\ShaderUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyApp.h" />
+    <ClInclude Include="..\..\Framework\GeometryUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\ShaderUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Extern">
@@ -23,5 +35,19 @@
     <Filter Include="Extern\imgui">
       <UniqueIdentifier>{a8f95f8b-6015-4ef8-b2a7-d8bdf69272cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{694fa813-3888-4c18-a4c6-04c27c54fee0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{57f0bc85-3a4e-4d21-8634-bc454be09297}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pointlight.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="pointlight.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

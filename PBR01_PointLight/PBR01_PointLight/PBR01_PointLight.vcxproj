@@ -65,6 +65,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Framework\GeometryUtils.cpp" />
+    <ClCompile Include="..\..\Framework\ShaderUtils.cpp" />
     <ClCompile Include="..\..\OGLPack\include\imgui\imgui.cpp" />
     <ClCompile Include="..\..\OGLPack\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\..\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp" />
@@ -72,7 +74,13 @@
     <ClCompile Include="MyApp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Framework\GeometryUtils.h" />
+    <ClInclude Include="..\..\Framework\ShaderUtils.h" />
     <ClInclude Include="MyApp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pointlight.frag" />
+    <None Include="pointlight.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
