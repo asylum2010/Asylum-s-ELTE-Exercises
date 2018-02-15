@@ -14,10 +14,15 @@ CMyApp::CMyApp(void)
 	numSphereVertices	= 0;
 	numSphereIndices	= 0;
 
+	framebuffer			= 0;
+	renderTarget0		= 0;
+	depthTarget			= 0;
 	sphereVBO			= 0;
 	sphereIBO			= 0;
-	inputLayout			= 0;
-	program				= 0;
+	sphereVAO			= 0;
+	screenQuadVAO		= 0;
+	pointlightPO		= 0;
+	tonemapPO			= 0;
 }
 
 CMyApp::~CMyApp(void)
@@ -26,11 +31,11 @@ CMyApp::~CMyApp(void)
 
 bool CMyApp::Init()
 {
-	glClearColor(0.125f, 0.25f, 0.5f, 1.0f);
+	glClearColor(0.0f, 0.0103f, 0.0707f, 1.0f);
 	glClearDepth(1.0f);
 
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	glCullFace(GL_BACK);
 	glDepthFunc(GL_LESS);
@@ -58,9 +63,9 @@ bool CMyApp::Init()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	// create input layout
-	glGenVertexArrays(1, &inputLayout);
-	glBindVertexArray(inputLayout);
+	// create input layout for sphere
+	glGenVertexArrays(1, &sphereVAO);
+	glBindVertexArray(sphereVAO);
 	{
 		// NOTE: VBO can't be decoupled from VAO before GL 4.4
 		glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
@@ -69,55 +74,125 @@ bool CMyApp::Init()
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(SCommonVertex), (const void*)0);
 
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SCommonVertex), (const void*)12);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(SCommonVertex), (const void*)12);
 
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(SCommonVertex), (const void*)20);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(SCommonVertex), (const void*)20);
 	}
 	glBindVertexArray(0);
 
-	// create shader program
+	// create input layout for screenquad
+	glGenVertexArrays(1, &screenQuadVAO);
+	glBindVertexArray(screenQuadVAO);
+	{
+		// no input; will be generated in vertex shader
+	}
+	glBindVertexArray(0);
+
+	// create point light program
 	GLuint vertexshader = CShaderUtils::FindAndCompileShader(GL_VERTEX_SHADER, L"pointlight.vert");
 	GLuint fragmentshader = CShaderUtils::FindAndCompileShader(GL_FRAGMENT_SHADER, L"pointlight.frag");
 
 	assert(vertexshader != 0);
 	assert(fragmentshader != 0);
 
-	program = glCreateProgram();
+	pointlightPO = glCreateProgram();
 
-	glAttachShader(program, vertexshader);
-	glAttachShader(program, fragmentshader);
-	glLinkProgram(program);
+	glAttachShader(pointlightPO, vertexshader);
+	glAttachShader(pointlightPO, fragmentshader);
+	glLinkProgram(pointlightPO);
 
-	bool success = CShaderUtils::ValidateShaderProgram(program);
+	bool success = CShaderUtils::ValidateShaderProgram(pointlightPO);
 	assert(success);
 
-	// bind fragment output and relink
-	glBindFragDataLocation(program, 0, "my_FragColor0");
-	glLinkProgram(program);
+	glBindFragDataLocation(pointlightPO, 0, "my_FragColor0");
+	glLinkProgram(pointlightPO);
 
 	// delete shader objects
-	glDetachShader(program, vertexshader);
-	glDetachShader(program, fragmentshader);
+	glDetachShader(pointlightPO, vertexshader);
+	glDetachShader(pointlightPO, fragmentshader);
+
+	glDeleteShader(vertexshader);
+	glDeleteShader(fragmentshader);
+
+	// create tonemap program
+	vertexshader = CShaderUtils::FindAndCompileShader(GL_VERTEX_SHADER, L"screenquad.vert");
+	fragmentshader = CShaderUtils::FindAndCompileShader(GL_FRAGMENT_SHADER, L"tonemap.frag");
+
+	assert(vertexshader != 0);
+	assert(fragmentshader != 0);
+
+	tonemapPO = glCreateProgram();
+
+	glAttachShader(tonemapPO, vertexshader);
+	glAttachShader(tonemapPO, fragmentshader);
+	glLinkProgram(tonemapPO);
+
+	success = CShaderUtils::ValidateShaderProgram(tonemapPO);
+	assert(success);
+
+	glBindFragDataLocation(tonemapPO, 0, "my_FragColor0");
+	glLinkProgram(tonemapPO);
+
+	// delete shader objects
+	glDetachShader(tonemapPO, vertexshader);
+	glDetachShader(tonemapPO, fragmentshader);
 
 	glDeleteShader(vertexshader);
 	glDeleteShader(fragmentshader);
 
 	// query all uniform locations and print them
-	CShaderUtils::QueryUniformLocations(uniformLocs, program);
+	CShaderUtils::QueryUniformLocations(uniformLocs, pointlightPO);
+	CShaderUtils::QueryUniformLocations(uniformLocs, tonemapPO);
 
 	printf("\nList of active uniforms:\n");
 
 	for (auto it : uniformLocs)
-		printf("  %s (%d)\n", it.first.c_str(), it.second);
+		printf("  %s (location = %d)\n", it.first.c_str(), it.second);
+
+	// create render targets (don't know size yet)
+	glGenTextures(1, &renderTarget0);
+	glBindTexture(GL_TEXTURE_2D, renderTarget0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 256, 256, 0, GL_RGBA, GL_HALF_FLOAT, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glGenTextures(1, &depthTarget);
+	glBindTexture(GL_TEXTURE_2D, depthTarget);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, 256, 256, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// create framebuffer
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	{
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTarget0, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthTarget, 0);
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		assert(status == GL_FRAMEBUFFER_COMPLETE);
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return true;
 }
 
 void CMyApp::Clean()
 {
-	glDeleteProgram(program);
-	glDeleteVertexArrays(1, &inputLayout);
+	glDeleteFramebuffers(1, &framebuffer);
+	glDeleteTextures(1, &renderTarget0);
+	glDeleteTextures(1, &depthTarget);
+	glDeleteProgram(pointlightPO);
+	glDeleteProgram(tonemapPO);
+	glDeleteVertexArrays(1, &sphereVAO);
+	glDeleteVertexArrays(1, &screenQuadVAO);
 	glDeleteBuffers(1, &sphereVBO);
 	glDeleteBuffers(1, &sphereIBO);
 }
@@ -134,10 +209,67 @@ void CMyApp::Update()
 
 void CMyApp::Render()
 {
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, windowWidth, windowHeight);
+	assert(windowWidth > 0);
 
-	// TODO:
+	// tweakables
+	glm::vec3 eyepos(0, 0, 2);
+	glm::vec3 lightpos(4, 3, 2);
+	glm::vec4 basecolor(1, 1, 1, 1);
+
+	glm::mat4 world, view, proj;
+	glm::mat4 worldinv;
+	glm::mat4 viewproj;
+
+	// setup transforms
+	world = glm::mat4(1.0f);
+	view = glm::lookAtRH(eyepos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	proj = glm::perspectiveFovRH<float>(glm::radians(80.0f), (float)windowWidth, (float)windowHeight, 0.1f, 10.0f);
+
+	viewproj = proj * view;
+	worldinv = glm::inverse(world);
+
+	// render pass 1 (lit spheres)
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	{
+		// setup graphics pipeline
+		glUseProgram(pointlightPO);
+		glBindVertexArray(sphereVAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereIBO);
+		glEnable(GL_DEPTH_TEST);
+		glViewport(0, 0, windowWidth, windowHeight);
+
+		// update uniforms
+		glUniformMatrix4fv(uniformLocs["matViewProj"], 1, GL_FALSE, &viewproj[0][0]);
+		glUniformMatrix4fv(uniformLocs["matWorld"], 1, GL_FALSE, &world[0][0]);
+		glUniformMatrix4fv(uniformLocs["matWorldInv"], 1, GL_FALSE, &worldinv[0][0]);
+
+		//glUniform3fv(uniformLocs["eyePos"], 1, &eyepos.x);
+		glUniform3fv(uniformLocs["lightPos"], 1, &lightpos.x);
+		glUniform4fv(uniformLocs["baseColor"], 1, &basecolor.x);
+		glUniform1f(uniformLocs["luminousFlux"], 2800);	// 40 W
+
+		// render spheres
+		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
+	}
+
+	// render pass 2 (tone mapping)
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	{
+		// setup graphics pipeline
+		glUseProgram(tonemapPO);
+		glBindVertexArray(screenQuadVAO);
+		glDisable(GL_DEPTH_TEST);
+		glViewport(0, 0, windowWidth, windowHeight);
+
+		// update uniforms
+		glUniform1i(uniformLocs["sampler0"], 0);
+		glBindTexture(GL_TEXTURE_2D, renderTarget0);
+
+		// draw screen quad
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	}
 }
 
 void CMyApp::KeyboardDown(SDL_KeyboardEvent& key)
@@ -168,4 +300,11 @@ void CMyApp::Resize(int newwidth, int newheight)
 {
 	windowWidth = newwidth;
 	windowHeight = newheight;
+
+	// reallocate render target storages
+	glBindTexture(GL_TEXTURE_2D, renderTarget0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_HALF_FLOAT, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, depthTarget);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, windowWidth, windowHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 }

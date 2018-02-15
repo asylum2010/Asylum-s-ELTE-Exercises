@@ -17,9 +17,9 @@ void main()
 {
 	vec4 pos = matWorld * vec4(my_Position, 1.0);
 
-	wpos	= pos.xyz;
-	wnorm	= (vec4(my_Normal, 0.0) * matWorldInv).xyz;
-	tex		= my_TexCoord0;
+	wpos = pos.xyz;
+	wnorm = (vec4(my_Normal, 0.0) * matWorldInv).xyz;
+	tex = my_TexCoord0;
 
 	gl_Position = matViewProj * pos;
 }

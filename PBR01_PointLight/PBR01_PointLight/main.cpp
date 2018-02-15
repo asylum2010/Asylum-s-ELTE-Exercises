@@ -18,10 +18,17 @@
 // user headers
 #include "MyApp.h"
 
+// defines
+#define WINDOW_WIDTH	1360
+#define WINDOW_HEIGHT	768
+
 void exitProgram()
 {
 	SDL_Quit();
+
+#ifdef _DEBUG
 	system("pause");
+#endif
 
 #ifdef _MSC_VER
 	_CrtDumpMemoryLeaks();
@@ -53,7 +60,7 @@ int main(int argc, char* args[])
 
 	// create window
 	SDL_Window* win = SDL_CreateWindow(
-		"PBR exercise 01: Point light",
+		"PBR exercise 01: Point lights",
 		100,
 		100,
 		640,
@@ -64,6 +71,9 @@ int main(int argc, char* args[])
 		std::cout << "[SDL] Could not create window: " << SDL_GetError() << std::endl;
 		return 1;
 	}
+
+	// resize it before we start doing anything...
+	SDL_SetWindowSize(win, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	// create GL context
 	SDL_GLContext context = SDL_GL_CreateContext(win);
@@ -115,8 +125,8 @@ int main(int argc, char* args[])
 			while (SDL_PollEvent(&ev)) {
 				ImGui_ImplSdlGL3_ProcessEvent(&ev);
 				
-				bool is_mouse_captured = ImGui::GetIO().WantCaptureMouse; //kell-e az imgui-nak az egér
-				bool is_keyboard_captured = ImGui::GetIO().WantCaptureKeyboard;	//kell-e az imgui-nak a billentyûzet
+				bool is_mouse_captured = ImGui::GetIO().WantCaptureMouse;
+				bool is_keyboard_captured = ImGui::GetIO().WantCaptureKeyboard;
 				
 				switch (ev.type) {
 				case SDL_QUIT:

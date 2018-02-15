@@ -40,13 +40,20 @@ private:
 	int				windowHeight;
 	uint32_t		numSphereVertices;
 	uint32_t		numSphereIndices;
-	UniformTable	uniformLocs;	// location of active uniforms
+	UniformTable	uniformLocs;	// locations of active uniforms
 
 	// GL objects
-	GLuint			sphereVBO;
-	GLuint			sphereIBO;
-	GLuint			inputLayout;	// VAO
-	GLuint			program;		// shader program
+	GLuint			framebuffer;	// for rendering in HDR
+	GLuint			renderTarget0;	// RGBA16F texture
+	GLuint			depthTarget;	// depth-stencil surface
+
+	GLuint			sphereVBO;		// sphere vertex data
+	GLuint			sphereIBO;		// sphere index data
+	GLuint			sphereVAO;		// for sphere
+	GLuint			screenQuadVAO;	// empty, but needed
+	
+	GLuint			pointlightPO;	// for spheres
+	GLuint			tonemapPO;		// for tone mapping
 };
 
 #endif

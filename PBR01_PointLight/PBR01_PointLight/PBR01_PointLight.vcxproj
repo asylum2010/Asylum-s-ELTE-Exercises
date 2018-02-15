@@ -81,6 +81,8 @@
   <ItemGroup>
     <None Include="pointlight.frag" />
     <None Include="pointlight.vert" />
+    <None Include="tonemap.frag" />
+    <None Include="screenquad.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
