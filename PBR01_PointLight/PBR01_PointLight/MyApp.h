@@ -15,6 +15,14 @@
 #include "../../Framework/GeometryUtils.h"
 #include "../../Framework/ShaderUtils.h"
 
+// Tasks:
+// (0) [don't forget to give value to uniforms when you start using them]
+// (1) modify 'pointlight.frag', so that it solves the radiance equation for point lights (BRDF can be Lambert)
+// (2) add the specular term using the Cook-Torrance microfacet model (GGX, Shlick, Smith-Shlick are ok)
+
+// (+) optimize the Cook-Torrance calculation (the Smith-Shlick function drops out its denominator)
+// (+) optimize everything else that you can
+
 class CMyApp
 {
 public:
@@ -43,13 +51,13 @@ private:
 	UniformTable	uniformLocs;	// locations of active uniforms
 
 	// GL objects
-	GLuint			framebuffer;	// for rendering in HDR
-	GLuint			renderTarget0;	// RGBA16F texture
+	GLuint			framebuffer;	// to render in HDR
+	GLuint			renderTarget0;	// RGBA16F
 	GLuint			depthTarget;	// depth-stencil surface
 
 	GLuint			sphereVBO;		// sphere vertex data
 	GLuint			sphereIBO;		// sphere index data
-	GLuint			sphereVAO;		// for sphere
+	GLuint			sphereVAO;		// sphere input layout
 	GLuint			screenQuadVAO;	// empty, but needed
 	
 	GLuint			pointlightPO;	// for spheres

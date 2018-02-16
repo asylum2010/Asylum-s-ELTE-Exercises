@@ -26,11 +26,11 @@ void exitProgram()
 {
 	SDL_Quit();
 
-#ifdef _DEBUG
-	system("pause");
-#endif
-
 #ifdef _MSC_VER
+#	ifdef _DEBUG
+	system("pause");
+#	endif
+
 	_CrtDumpMemoryLeaks();
 #endif
 }
@@ -55,8 +55,6 @@ int main(int argc, char* args[])
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,			8);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,		1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,			24);
-	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,	1);
-	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,	4);
 
 	// create window
 	SDL_Window* win = SDL_CreateWindow(
@@ -99,7 +97,7 @@ int main(int argc, char* args[])
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
 
-	// support GL 3.3 only (7+ years old...)
+	// we support GL 3.3+ only (7+ years old...)
 	assert(major >= 3 || (major == 3 && minor >= 3));
 	std::cout << "OpenGL version is GL " << major << "." << minor << std::endl;
 

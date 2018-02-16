@@ -117,3 +117,23 @@ void CShaderUtils::QueryUniformLocations(UniformTable& outmap, GLuint program)
 		outmap.insert(std::make_pair(std::string(uniname), loc));
 	}
 }
+
+glm::vec4 CShaderUtils::sRGBToLinear(uint8_t red, uint8_t green, uint8_t blue)
+{
+	glm::vec4 ret;
+
+	float lo_r = (float)red / 3294.6f;
+	float lo_g = (float)green / 3294.6f;
+	float lo_b = (float)blue / 3294.6f;
+
+	float hi_r = powf((red / 255.0f + 0.055f) / 1.055f, 2.4f);
+	float hi_g = powf((green / 255.0f + 0.055f) / 1.055f, 2.4f);
+	float hi_b = powf((blue / 255.0f + 0.055f) / 1.055f, 2.4f);
+
+	ret.r = (red < 10 ? lo_r : hi_r);
+	ret.g = (green < 10 ? lo_g : hi_g);
+	ret.b = (blue < 10 ? lo_b : hi_b);
+	ret.a = 1;
+
+	return ret;
+}

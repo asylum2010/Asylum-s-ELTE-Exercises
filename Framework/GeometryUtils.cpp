@@ -88,11 +88,13 @@ void CGeometryUtils::CreateSphere(SCommonVertex* outvdata, uint32_t* outidata, f
 	}
 
 	for (int i = 0; i < vsegments - 1; ++i) {
-		outidata[0] = (hsegments - 2) * vsegments + i; // top
+		// top
+		outidata[0] = (hsegments - 2) * vsegments + i;
 		outidata[1] = i;
 		outidata[2] = i + 1;
 
-		outidata[3] = (hsegments - 2) * vsegments + (vsegments - 1) + i; // bottom
+		// bottom
+		outidata[3] = (hsegments - 2) * vsegments + (vsegments - 1) + i;
 		outidata[4] = (hsegments - 3) * vsegments + i + 1;
 		outidata[5] = (hsegments - 3) * vsegments + i;
 

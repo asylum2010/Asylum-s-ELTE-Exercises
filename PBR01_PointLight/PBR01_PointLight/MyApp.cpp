@@ -36,9 +36,7 @@ bool CMyApp::Init()
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_FRAMEBUFFER_SRGB);
-
 	glCullFace(GL_BACK);
-	glDepthFunc(GL_LESS);
 
 	// create one sphere
 	glGenBuffers(1, &sphereVBO);
@@ -202,7 +200,7 @@ void CMyApp::Update()
 	static Uint32 last_time = SDL_GetTicks();
 	float delta_time = (SDL_GetTicks() - last_time) / 1000.0f;
 
-	// TODO: update with delta
+	// TODO: update physics with delta
 
 	last_time = SDL_GetTicks();
 }
@@ -212,18 +210,29 @@ void CMyApp::Render()
 	assert(windowWidth > 0);
 
 	// tweakables
-	glm::vec3 eyepos(0, 0, 2);
-	glm::vec3 lightpos(4, 3, 2);
-	glm::vec4 basecolor(1, 1, 1, 1);
+	glm::vec3 eyepos(0, 0, 5);
+	glm::vec3 lightpos1, lightpos2;
+	glm::vec4 basecolor1 = CShaderUtils::sRGBToLinear(0, 240, 240);
+	glm::vec4 basecolor2 = CShaderUtils::sRGBToLinear(255, 106, 0);
+	glm::vec4 basecolor3 = CShaderUtils::sRGBToLinear(0, 255, 0);
 
 	glm::mat4 world, view, proj;
 	glm::mat4 worldinv;
 	glm::mat4 viewproj;
 
+	float time = SDL_GetTicks() / 1000.0f;
+
+	// strong moving point light (experiment with curves on https://www.desmos.com/calculator)
+	lightpos1.x = cosf(time) * 5;
+	lightpos1.y = sinf(time * 0.5f) * 2;
+	lightpos1.z = sinf(time) * 5;
+
+	// a weaker static point light so we don't look retarded...
+	lightpos2 = eyepos;
+
 	// setup transforms
-	world = glm::mat4(1.0f);
 	view = glm::lookAtRH(eyepos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	proj = glm::perspectiveFovRH<float>(glm::radians(80.0f), (float)windowWidth, (float)windowHeight, 0.1f, 10.0f);
+	proj = glm::perspectiveFovRH<float>(glm::radians(80.0f), (float)windowWidth, (float)windowHeight, 0.1f, 30.0f);
 
 	viewproj = proj * view;
 	worldinv = glm::inverse(world);
@@ -239,18 +248,67 @@ void CMyApp::Render()
 		glEnable(GL_DEPTH_TEST);
 		glViewport(0, 0, windowWidth, windowHeight);
 
-		// update uniforms
+		// update common uniforms
 		glUniformMatrix4fv(uniformLocs["matViewProj"], 1, GL_FALSE, &viewproj[0][0]);
-		glUniformMatrix4fv(uniformLocs["matWorld"], 1, GL_FALSE, &world[0][0]);
-		glUniformMatrix4fv(uniformLocs["matWorldInv"], 1, GL_FALSE, &worldinv[0][0]);
+		glUniform3fv(uniformLocs["eyePos"], 1, &eyepos.x);
 
-		//glUniform3fv(uniformLocs["eyePos"], 1, &eyepos.x);
-		glUniform3fv(uniformLocs["lightPos"], 1, &lightpos.x);
-		glUniform4fv(uniformLocs["baseColor"], 1, &basecolor.x);
-		glUniform1f(uniformLocs["luminousFlux"], 2800);	// 40 W
+		auto render_spheres = [&]() {
+			// sphere 1
+			world = glm::translate(glm::vec3(3, 0, -2));
 
-		// render spheres
-		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
+			glUniformMatrix4fv(uniformLocs["matWorld"], 1, GL_FALSE, &world[0][0]);
+			glUniformMatrix4fv(uniformLocs["matWorldInv"], 1, GL_FALSE, &worldinv[0][0]);
+			glUniform4fv(uniformLocs["baseColor"], 1, &basecolor1.x);
+			glUniform1f(uniformLocs["roughness"], 0.2f);
+
+			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
+
+			// sphere 2
+			world = glm::translate(glm::vec3(-3, -1, 0));
+
+			glUniformMatrix4fv(uniformLocs["matWorld"], 1, GL_FALSE, &world[0][0]);
+			glUniformMatrix4fv(uniformLocs["matWorldInv"], 1, GL_FALSE, &worldinv[0][0]);
+			glUniform4fv(uniformLocs["baseColor"], 1, &basecolor2.x);
+			glUniform1f(uniformLocs["roughness"], 0.5f);
+
+			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
+
+			// sphere 3
+			world = glm::translate(glm::vec3(-1, 1, -2));
+
+			glUniformMatrix4fv(uniformLocs["matWorld"], 1, GL_FALSE, &world[0][0]);
+			glUniformMatrix4fv(uniformLocs["matWorldInv"], 1, GL_FALSE, &worldinv[0][0]);
+			glUniform4fv(uniformLocs["baseColor"], 1, &basecolor3.x);
+			glUniform1f(uniformLocs["roughness"], 0.7f);
+
+			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
+		};
+
+		// render spheres with first light
+		glDepthFunc(GL_LESS);
+
+		glUniform3fv(uniformLocs["lightPos"], 1, &lightpos1.x);
+		glUniform1f(uniformLocs["luminousFlux"], 3200);	// ~42 W
+		
+		render_spheres();
+
+		// render spheres with second light (additive blending)
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_LEQUAL);
+
+		glUniform3fv(uniformLocs["lightPos"], 1, &lightpos2.x);
+		glUniform1f(uniformLocs["luminousFlux"], 200);	// much weaker
+		
+		render_spheres();
+
+		glDisable(GL_BLEND);
+
+		// must enable it for glClear (HUGE difference with Metal/Vulkan)
+		glDepthMask(GL_TRUE);
 	}
 
 	// render pass 2 (tone mapping)
