@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Extern">
+      <UniqueIdentifier>{d6018516-b070-4779-a557-36803aa0c5b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Extern\imgui">
+      <UniqueIdentifier>{3a3f9da0-8d84-4e3d-b256-3f645d0490b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{7582949a-6584-47ab-871c-6742d8bda587}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{57e2c0ae-0224-4a04-ae66-9176571e9701}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\OGLPack\include\imgui\imgui.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OGLPack\include\imgui\imgui_draw.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\GeometryUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\ShaderUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MyApp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Framework\GeometryUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\ShaderUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="MyApp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\PBR01_PointLight\PBR01_PointLight\tonemap.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\PBR01_PointLight\PBR01_PointLight\screenquad.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="lightprobe.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="lightprobe.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="sky.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="sky.vert">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

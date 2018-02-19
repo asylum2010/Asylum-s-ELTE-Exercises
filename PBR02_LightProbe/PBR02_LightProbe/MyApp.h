@@ -16,11 +16,6 @@
 #include "../../Framework/ShaderUtils.h"
 
 // Tasks:
-// (1) modify 'pointlight.frag', so that it solves the radiance equation for point lights (BRDF can be Lambert)
-// (2) add the specular term using the Cook-Torrance microfacet model (GGX, Shlick, Smith-Shlick are ok)
-
-// (+) optimize the Cook-Torrance calculation (the Smith-Shlick function drops out its denominator)
-// (+) optimize everything else that you can
 
 class CMyApp
 {
@@ -59,7 +54,8 @@ private:
 	GLuint			sphereVAO;		// sphere input layout
 	GLuint			screenQuadVAO;	// empty, but needed
 	
-	GLuint			pointlightPO;	// for spheres
+	GLuint			skyCubePO;		// for sky
+	GLuint			lightProbePO;	// for preintegrated light probe
 	GLuint			tonemapPO;		// for tone mapping
 };
 

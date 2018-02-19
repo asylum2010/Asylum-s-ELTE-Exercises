@@ -8,7 +8,6 @@
 #include <exception>
 #include <cstdarg>
 
-// NOTE: will throw exception when trying to access an invalid key
 class CUniformTable : private std::unordered_map<std::string, GLint>
 {
 	typedef std::unordered_map<std::string, GLint> base_type;
@@ -20,6 +19,7 @@ public:
 	using base_type::count;
 	using base_type::find;
 
+	// NOTE: will throw exception when trying to access an invalid key
 	mapped_type& operator[](key_type&& _Keyval) {
 		// disable auto creation
 		auto it = base_type::find(_Keyval);
@@ -30,6 +30,7 @@ public:
 		return it->second;
 	}
 
+	// NOTE: these will silently fail
 	void SetMatrix4fv(key_type&& _Keyval, GLsizei count, GLboolean transpose, const GLfloat* value) {
 		auto it = base_type::find(_Keyval);
 

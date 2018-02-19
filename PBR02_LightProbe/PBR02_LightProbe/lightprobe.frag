@@ -11,10 +11,12 @@ uniform vec3 eyePos;
 // material params
 uniform vec4 baseColor;
 uniform float roughness;
+uniform float metalness;
 
-// light params
-uniform vec3 lightPos;
-uniform float luminousFlux;
+// preintegrated irradiance and BRDF textures
+uniform samplerCube irradianceDiffuse;
+uniform samplerCube irradianceSpecular;
+uniform sampler2D brdfLUT;
 
 in vec2 tex;
 in vec3 wpos;
@@ -55,35 +57,7 @@ float G_Smith_Schlick(float ndotl, float ndotv)
 
 void main()
 {
-	vec3 ldir = lightPos - wpos;
+	// TODO:
 
-	vec3 n = normalize(wnorm);
-	vec3 v = normalize(eyePos - wpos);
-	vec3 l = normalize(ldir);
-	vec3 h = normalize(v + l);
-
-	// calculate the easy things
-	float ndotv = max(dot(n, v), 0.0);
-	float ndotl = max(dot(n, l), 0.0);	// cos(theta)
-	float ndoth = max(dot(n, h), 0.0);
-	float ldoth = max(dot(l, h), 0.0);
-
-	float dist2 = dot(ldir, ldir);
-
-	// BRDF diffuse term (Lambert)
-	vec4 f_lambert = baseColor * ONE_OVER_PI;
-
-	// BRDF specular term (Cook-Torrance)
-	float D = D_GGX(ndoth);
-	vec3 F = F_Schlick(vec3(0.04), ldoth);
-	float G = G_Smith_Schlick(ndotl, ndotv);
-
-	vec3 f_cooktorrance = (D * F * G) / (4.0 * ndotv * ndotl + EPSILON);
-
-	// calculate outgoing luminance
-	vec3 brdf = f_lambert.xyz + f_cooktorrance;
-	vec3 luminance = ndotl * ((brdf * luminousFlux) / (QUAD_PI * dist2));
-
-	// won't work for transparent materials (need the BSDF model)
-	my_FragColor0 = vec4(luminance, 1.0);
+	my_FragColor0 = baseColor;
 }
