@@ -140,12 +140,12 @@ bool CMyApp::Init()
 	glDeleteShader(fragmentshader);
 
 	// query all uniform locations and print them
-	CShaderUtils::QueryUniformLocations(uniformLocs, pointlightPO);
-	CShaderUtils::QueryUniformLocations(uniformLocs, tonemapPO);
+	CShaderUtils::QueryUniformLocations(uniformTable, pointlightPO);
+	CShaderUtils::QueryUniformLocations(uniformTable, tonemapPO);
 
 	printf("\nList of active uniforms:\n");
 
-	for (auto it : uniformLocs)
+	for (auto it : uniformTable)
 		printf("  %s (location = %d)\n", it.first.c_str(), it.second);
 
 	// create render targets (don't know size yet)
@@ -249,37 +249,37 @@ void CMyApp::Render()
 		glViewport(0, 0, windowWidth, windowHeight);
 
 		// update common uniforms
-		glUniformMatrix4fv(uniformLocs["matViewProj"], 1, GL_FALSE, &viewproj[0][0]);
-		glUniform3fv(uniformLocs["eyePos"], 1, &eyepos.x);
+		uniformTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
+		uniformTable.SetVector3fv("eyePos", 1, &eyepos.x);
 
 		auto render_spheres = [&]() {
 			// sphere 1
 			world = glm::translate(glm::vec3(3, 0, -2));
 
-			glUniformMatrix4fv(uniformLocs["matWorld"], 1, GL_FALSE, &world[0][0]);
-			glUniformMatrix4fv(uniformLocs["matWorldInv"], 1, GL_FALSE, &worldinv[0][0]);
-			glUniform4fv(uniformLocs["baseColor"], 1, &basecolor1.x);
-			glUniform1f(uniformLocs["roughness"], 0.2f);
+			uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+			uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+			uniformTable.SetVector4fv("baseColor", 1, &basecolor1.x);
+			uniformTable.SetFloat("roughness", 0.2f);
 
 			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 
 			// sphere 2
 			world = glm::translate(glm::vec3(-3, -1, 0));
 
-			glUniformMatrix4fv(uniformLocs["matWorld"], 1, GL_FALSE, &world[0][0]);
-			glUniformMatrix4fv(uniformLocs["matWorldInv"], 1, GL_FALSE, &worldinv[0][0]);
-			glUniform4fv(uniformLocs["baseColor"], 1, &basecolor2.x);
-			glUniform1f(uniformLocs["roughness"], 0.5f);
+			uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+			uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+			uniformTable.SetVector4fv("baseColor", 1, &basecolor2.x);
+			uniformTable.SetFloat("roughness", 0.5f);
 
 			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 
 			// sphere 3
 			world = glm::translate(glm::vec3(-1, 1, -2));
 
-			glUniformMatrix4fv(uniformLocs["matWorld"], 1, GL_FALSE, &world[0][0]);
-			glUniformMatrix4fv(uniformLocs["matWorldInv"], 1, GL_FALSE, &worldinv[0][0]);
-			glUniform4fv(uniformLocs["baseColor"], 1, &basecolor3.x);
-			glUniform1f(uniformLocs["roughness"], 0.7f);
+			uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+			uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+			uniformTable.SetVector4fv("baseColor", 1, &basecolor3.x);
+			uniformTable.SetFloat("roughness", 0.7f);
 
 			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 		};
@@ -287,8 +287,8 @@ void CMyApp::Render()
 		// render spheres with first light
 		glDepthFunc(GL_LESS);
 
-		glUniform3fv(uniformLocs["lightPos"], 1, &lightpos1.x);
-		glUniform1f(uniformLocs["luminousFlux"], 3200);	// ~42 W
+		uniformTable.SetVector3fv("lightPos", 1, &lightpos1.x);
+		uniformTable.SetFloat("luminousFlux", 3200);	// ~42 W
 		
 		render_spheres();
 
@@ -300,8 +300,8 @@ void CMyApp::Render()
 		glDepthMask(GL_FALSE);
 		glDepthFunc(GL_LEQUAL);
 
-		glUniform3fv(uniformLocs["lightPos"], 1, &lightpos2.x);
-		glUniform1f(uniformLocs["luminousFlux"], 200);	// much weaker
+		uniformTable.SetVector3fv("lightPos", 1, &lightpos2.x);
+		uniformTable.SetFloat("luminousFlux", 200);		// much weaker
 		
 		render_spheres();
 
@@ -322,7 +322,7 @@ void CMyApp::Render()
 		glViewport(0, 0, windowWidth, windowHeight);
 
 		// update uniforms
-		glUniform1i(uniformLocs["sampler0"], 0);
+		uniformTable.SetInt("sampler0", 0);
 		glBindTexture(GL_TEXTURE_2D, renderTarget0);
 
 		// draw screen quad

@@ -85,7 +85,7 @@ bool CShaderUtils::ValidateShaderProgram(GLuint program)
 	return true;
 }
 
-void CShaderUtils::QueryUniformLocations(UniformTable& outmap, GLuint program)
+void CShaderUtils::QueryUniformLocations(CUniformTable& outmap, GLuint program)
 {
 	// TODO: uniform blocks
 	assert(program != 0);

@@ -48,7 +48,7 @@ private:
 	int				windowHeight;
 	uint32_t		numSphereVertices;
 	uint32_t		numSphereIndices;
-	UniformTable	uniformLocs;	// locations of active uniforms
+	CUniformTable	uniformTable;	// locations of active uniforms
 
 	// GL objects
 	GLuint			framebuffer;	// to render in HDR

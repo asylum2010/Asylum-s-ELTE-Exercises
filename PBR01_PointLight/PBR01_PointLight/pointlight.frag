@@ -4,6 +4,7 @@
 #define ONE_OVER_PI	0.3183098861837906
 #define PI			3.1415926535897932
 #define QUAD_PI		12.566370614359172
+#define EPSILON		1e-5					// to avoid division with zero
 
 uniform vec3 eyePos;
 
@@ -35,7 +36,7 @@ float D_GGX(float ndoth)
 	// optimized formula for the GPU
 	float d = (ndoth * a2 - ndoth) * ndoth + 1.0;
 
-	return a2 / (PI * d * d);
+	return a2 / (PI * d * d + EPSILON);
 }
 
 float G_Smith_Schlick(float ndotl, float ndotv)
@@ -44,9 +45,9 @@ float G_Smith_Schlick(float ndotl, float ndotv)
 	float a = roughness + 1.0;
 	float k = a * a * 0.125;
 
-	// the Smith function
-	float G1_v = ndotv * (1 - k) + k;
-	float G1_l = ndotl * (1 - k) + k;
+	// the shadowing/masking functions
+	float G1_l = ndotl * (1 - k) + k + EPSILON;
+	float G1_v = ndotv * (1 - k) + k + EPSILON;
 
 	// could be optimized out due to Cook-Torrance's denominator
 	return (ndotl / G1_l) * (ndotv / G1_v);
@@ -77,15 +78,12 @@ void main()
 	vec3 F = F_Schlick(vec3(0.04), ldoth);
 	float G = G_Smith_Schlick(ndotl, ndotv);
 
-	vec3 f_cooktorrance = (D * F * G) / (4.0 * ndotv * ndotl);
+	vec3 f_cooktorrance = (D * F * G) / (4.0 * ndotv * ndotl + EPSILON);
 
 	// calculate outgoing luminance
 	vec3 brdf = f_lambert.xyz + f_cooktorrance;
 	vec3 luminance = ndotl * ((brdf * luminousFlux) / (QUAD_PI * dist2));
 
-	// NEVER forget this!!!
-	luminance = max(luminance, vec3(0.0));
-
-	// won't work good for transparent materials (requires the BSDF model)
+	// won't work for transparent materials (need the BSDF model)
 	my_FragColor0 = vec4(luminance, 1.0);
 }
