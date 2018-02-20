@@ -14,6 +14,7 @@
 
 #include "../../Framework/GeometryUtils.h"
 #include "../../Framework/ShaderUtils.h"
+#include "../../Framework/TextureUtils.h"
 
 // Tasks:
 
@@ -42,12 +43,18 @@ private:
 	int				windowHeight;
 	uint32_t		numSphereVertices;
 	uint32_t		numSphereIndices;
-	CUniformTable	uniformTable;	// locations of active uniforms
+
+	// locations of active uniforms
+	CUniformTable	skyUniTable;
+	CUniformTable	lightProbeUniTable;
+	CUniformTable	tonemapUniTable;
 
 	// GL objects
 	GLuint			framebuffer;	// to render in HDR
 	GLuint			renderTarget0;	// RGBA16F
 	GLuint			depthTarget;	// depth-stencil surface
+	
+	GLuint			skyTexture;
 
 	GLuint			sphereVBO;		// sphere vertex data
 	GLuint			sphereIBO;		// sphere index data

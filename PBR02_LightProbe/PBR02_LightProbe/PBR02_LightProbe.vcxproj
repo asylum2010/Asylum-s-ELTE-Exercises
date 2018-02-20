@@ -65,6 +65,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Framework\TextureUtils.cpp" />
+    <ClCompile Include="..\..\Framework\dds.cpp" />
     <ClCompile Include="..\..\Framework\GeometryUtils.cpp" />
     <ClCompile Include="..\..\Framework\ShaderUtils.cpp" />
     <ClCompile Include="..\..\OGLPack\include\imgui\imgui.cpp" />
@@ -74,6 +76,8 @@
     <ClCompile Include="MyApp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Framework\TextureUtils.h" />
+    <ClInclude Include="..\..\Framework\dds.h" />
     <ClInclude Include="..\..\Framework\GeometryUtils.h" />
     <ClInclude Include="..\..\Framework\ShaderUtils.h" />
     <ClInclude Include="MyApp.h" />

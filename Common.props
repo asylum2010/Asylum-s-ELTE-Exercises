@@ -5,6 +5,8 @@
   <PropertyGroup>
     <IncludePath>T:\OGLPack\include;$(IncludePath)</IncludePath>
     <LibraryPath>T:\OGLPack\lib\x64;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Configuration)_$(Platform)\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)obj\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <PostBuildEvent>

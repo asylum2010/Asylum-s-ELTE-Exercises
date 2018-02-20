@@ -47,7 +47,10 @@ private:
 	int				windowHeight;
 	uint32_t		numSphereVertices;
 	uint32_t		numSphereIndices;
-	CUniformTable	uniformTable;	// locations of active uniforms
+
+	// locations of active uniforms
+	CUniformTable	pointLightTable;
+	CUniformTable	tonemapTable;
 
 	// GL objects
 	GLuint			framebuffer;	// to render in HDR
@@ -59,7 +62,7 @@ private:
 	GLuint			sphereVAO;		// sphere input layout
 	GLuint			screenQuadVAO;	// empty, but needed
 	
-	GLuint			pointlightPO;	// for spheres
+	GLuint			pointLightPO;	// for spheres
 	GLuint			tonemapPO;		// for tone mapping
 };
 

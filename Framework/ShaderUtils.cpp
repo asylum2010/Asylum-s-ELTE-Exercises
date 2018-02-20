@@ -22,7 +22,7 @@ CShaderUtils::~CShaderUtils()
 GLuint CShaderUtils::FindAndCompileShader(GLenum type, const wchar_t* filename)
 {
 #ifndef _MSC_VER
-	// TODO: platform specific code forLinux/macOS
+	// TODO: platform specific code for Linux/macOS
 	assert(false);
 #endif
 
@@ -31,7 +31,7 @@ GLuint CShaderUtils::FindAndCompileShader(GLenum type, const wchar_t* filename)
 	FILE* infile = nullptr;
 
 	if (FALSE == PathResolve(&sourcefile[0], NULL, PRF_VERIFYEXISTS)) {
-		printf("[ShaderUtils] Media directory not found\n", sourcefile.c_str());
+		printf("[ShaderUtils] Media directory not found\n");
 		return 0;
 	}
 

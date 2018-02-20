@@ -21,7 +21,7 @@ CMyApp::CMyApp(void)
 	sphereIBO			= 0;
 	sphereVAO			= 0;
 	screenQuadVAO		= 0;
-	pointlightPO		= 0;
+	pointLightPO		= 0;
 	tonemapPO			= 0;
 }
 
@@ -94,21 +94,21 @@ bool CMyApp::Init()
 	assert(vertexshader != 0);
 	assert(fragmentshader != 0);
 
-	pointlightPO = glCreateProgram();
+	pointLightPO = glCreateProgram();
 
-	glAttachShader(pointlightPO, vertexshader);
-	glAttachShader(pointlightPO, fragmentshader);
-	glLinkProgram(pointlightPO);
+	glAttachShader(pointLightPO, vertexshader);
+	glAttachShader(pointLightPO, fragmentshader);
+	glLinkProgram(pointLightPO);
 
-	bool success = CShaderUtils::ValidateShaderProgram(pointlightPO);
+	bool success = CShaderUtils::ValidateShaderProgram(pointLightPO);
 	assert(success);
 
-	glBindFragDataLocation(pointlightPO, 0, "my_FragColor0");
-	glLinkProgram(pointlightPO);
+	glBindFragDataLocation(pointLightPO, 0, "my_FragColor0");
+	glLinkProgram(pointLightPO);
 
 	// delete shader objects
-	glDetachShader(pointlightPO, vertexshader);
-	glDetachShader(pointlightPO, fragmentshader);
+	glDetachShader(pointLightPO, vertexshader);
+	glDetachShader(pointLightPO, fragmentshader);
 
 	glDeleteShader(vertexshader);
 	glDeleteShader(fragmentshader);
@@ -140,12 +140,17 @@ bool CMyApp::Init()
 	glDeleteShader(fragmentshader);
 
 	// query all uniform locations and print them
-	CShaderUtils::QueryUniformLocations(uniformTable, pointlightPO);
-	CShaderUtils::QueryUniformLocations(uniformTable, tonemapPO);
+	CShaderUtils::QueryUniformLocations(pointLightTable, pointLightPO);
+	CShaderUtils::QueryUniformLocations(tonemapTable, tonemapPO);
 
-	printf("\nList of active uniforms:\n");
+	printf("\nActive uniforms (pointlight):\n");
 
-	for (auto it : uniformTable)
+	for (auto it : pointLightTable)
+		printf("  %s (location = %d)\n", it.first.c_str(), it.second);
+
+	printf("\nActive uniforms (tonemap):\n");
+
+	for (auto it : tonemapTable)
 		printf("  %s (location = %d)\n", it.first.c_str(), it.second);
 
 	// create render targets (don't know size yet)
@@ -187,7 +192,7 @@ void CMyApp::Clean()
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteTextures(1, &renderTarget0);
 	glDeleteTextures(1, &depthTarget);
-	glDeleteProgram(pointlightPO);
+	glDeleteProgram(pointLightPO);
 	glDeleteProgram(tonemapPO);
 	glDeleteVertexArrays(1, &sphereVAO);
 	glDeleteVertexArrays(1, &screenQuadVAO);
@@ -242,44 +247,44 @@ void CMyApp::Render()
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	{
 		// setup graphics pipeline
-		glUseProgram(pointlightPO);
+		glUseProgram(pointLightPO);
 		glBindVertexArray(sphereVAO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereIBO);
 		glEnable(GL_DEPTH_TEST);
 		glViewport(0, 0, windowWidth, windowHeight);
 
 		// update common uniforms
-		uniformTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
-		uniformTable.SetVector3fv("eyePos", 1, &eyepos.x);
+		pointLightTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
+		pointLightTable.SetVector3fv("eyePos", 1, &eyepos.x);
 
 		auto render_spheres = [&]() {
 			// sphere 1
 			world = glm::translate(glm::vec3(3, 0, -2));
 
-			uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
-			uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
-			uniformTable.SetVector4fv("baseColor", 1, &basecolor1.x);
-			uniformTable.SetFloat("roughness", 0.2f);
+			pointLightTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+			pointLightTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+			pointLightTable.SetVector4fv("baseColor", 1, &basecolor1.x);
+			pointLightTable.SetFloat("roughness", 0.2f);
 
 			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 
 			// sphere 2
 			world = glm::translate(glm::vec3(-3, -1, 0));
 
-			uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
-			uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
-			uniformTable.SetVector4fv("baseColor", 1, &basecolor2.x);
-			uniformTable.SetFloat("roughness", 0.5f);
+			pointLightTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+			pointLightTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+			pointLightTable.SetVector4fv("baseColor", 1, &basecolor2.x);
+			pointLightTable.SetFloat("roughness", 0.5f);
 
 			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 
 			// sphere 3
 			world = glm::translate(glm::vec3(-1, 1, -2));
 
-			uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
-			uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
-			uniformTable.SetVector4fv("baseColor", 1, &basecolor3.x);
-			uniformTable.SetFloat("roughness", 0.7f);
+			pointLightTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+			pointLightTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+			pointLightTable.SetVector4fv("baseColor", 1, &basecolor3.x);
+			pointLightTable.SetFloat("roughness", 0.7f);
 
 			glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 		};
@@ -287,8 +292,8 @@ void CMyApp::Render()
 		// render spheres with first light
 		glDepthFunc(GL_LESS);
 
-		uniformTable.SetVector3fv("lightPos", 1, &lightpos1.x);
-		uniformTable.SetFloat("luminousFlux", 3200);	// ~42 W
+		pointLightTable.SetVector3fv("lightPos", 1, &lightpos1.x);
+		pointLightTable.SetFloat("luminousFlux", 3200);	// ~42 W
 		
 		render_spheres();
 
@@ -300,8 +305,8 @@ void CMyApp::Render()
 		glDepthMask(GL_FALSE);
 		glDepthFunc(GL_LEQUAL);
 
-		uniformTable.SetVector3fv("lightPos", 1, &lightpos2.x);
-		uniformTable.SetFloat("luminousFlux", 200);		// much weaker
+		pointLightTable.SetVector3fv("lightPos", 1, &lightpos2.x);
+		pointLightTable.SetFloat("luminousFlux", 200);		// much weaker
 		
 		render_spheres();
 
@@ -322,7 +327,7 @@ void CMyApp::Render()
 		glViewport(0, 0, windowWidth, windowHeight);
 
 		// update uniforms
-		uniformTable.SetInt("sampler0", 0);
+		tonemapTable.SetInt("sampler0", 0);
 		glBindTexture(GL_TEXTURE_2D, renderTarget0);
 
 		// draw screen quad

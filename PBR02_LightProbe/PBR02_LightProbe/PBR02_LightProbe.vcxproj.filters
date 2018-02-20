@@ -32,6 +32,12 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyApp.cpp" />
+    <ClCompile Include="..\..\Framework\dds.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\TextureUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\GeometryUtils.h">
@@ -41,6 +47,12 @@
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="MyApp.h" />
+    <ClInclude Include="..\..\Framework\dds.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\TextureUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Media\Shaders\lightprobe.frag">

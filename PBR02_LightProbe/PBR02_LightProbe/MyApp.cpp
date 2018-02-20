@@ -17,6 +17,7 @@ CMyApp::CMyApp(void)
 	framebuffer			= 0;
 	renderTarget0		= 0;
 	depthTarget			= 0;
+	skyTexture			= 0;
 	sphereVBO			= 0;
 	sphereIBO			= 0;
 	sphereVAO			= 0;
@@ -114,6 +115,32 @@ bool CMyApp::Init()
 	glDeleteShader(vertexshader);
 	glDeleteShader(fragmentshader);
 
+	// create sky program
+	vertexshader = CShaderUtils::FindAndCompileShader(GL_VERTEX_SHADER, L"sky.vert");
+	fragmentshader = CShaderUtils::FindAndCompileShader(GL_FRAGMENT_SHADER, L"sky.frag");
+
+	assert(vertexshader != 0);
+	assert(fragmentshader != 0);
+
+	skyCubePO = glCreateProgram();
+
+	glAttachShader(skyCubePO, vertexshader);
+	glAttachShader(skyCubePO, fragmentshader);
+	glLinkProgram(skyCubePO);
+
+	success = CShaderUtils::ValidateShaderProgram(skyCubePO);
+	assert(success);
+
+	glBindFragDataLocation(skyCubePO, 0, "my_FragColor0");
+	glLinkProgram(skyCubePO);
+
+	// delete shader objects
+	glDetachShader(skyCubePO, vertexshader);
+	glDetachShader(skyCubePO, fragmentshader);
+
+	glDeleteShader(vertexshader);
+	glDeleteShader(fragmentshader);
+
 	// create tonemap program
 	vertexshader = CShaderUtils::FindAndCompileShader(GL_VERTEX_SHADER, L"screenquad.vert");
 	fragmentshader = CShaderUtils::FindAndCompileShader(GL_FRAGMENT_SHADER, L"tonemap.frag");
@@ -140,15 +167,17 @@ bool CMyApp::Init()
 	glDeleteShader(vertexshader);
 	glDeleteShader(fragmentshader);
 
-	// query all uniform locations and print them
-	//CShaderUtils::QueryUniformLocations(uniformTable, skyCubePO);
-	CShaderUtils::QueryUniformLocations(uniformTable, lightProbePO);
-	CShaderUtils::QueryUniformLocations(uniformTable, tonemapPO);
+	// query all uniform locations
+	CShaderUtils::QueryUniformLocations(skyUniTable, skyCubePO);
+	CShaderUtils::QueryUniformLocations(lightProbeUniTable, lightProbePO);
+	CShaderUtils::QueryUniformLocations(tonemapUniTable, tonemapPO);
 
-	printf("\nList of active uniforms:\n");
+	// load textures
+	// http://www.pauldebevec.com/Probes/ (download cube cross versions in .hdr format)
+	// https://gpuopen.com/archive/gamescgi/cubemapgen/ (experiment, then filter and convert to .dds)
 
-	for (auto it : uniformTable)
-		printf("  %s (location = %d)\n", it.first.c_str(), it.second);
+	skyTexture = CTextureUtils::FindAndLoadTexture(L"grace2.dds", false);
+	assert(skyTexture != 0);
 
 	// create render targets (don't know size yet)
 	glGenTextures(1, &renderTarget0);
@@ -189,6 +218,7 @@ void CMyApp::Clean()
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteTextures(1, &renderTarget0);
 	glDeleteTextures(1, &depthTarget);
+	glDeleteTextures(1, &skyTexture);
 	glDeleteProgram(skyCubePO);
 	glDeleteProgram(lightProbePO);
 	glDeleteProgram(tonemapPO);
@@ -213,7 +243,7 @@ void CMyApp::Render()
 	assert(windowWidth > 0);
 
 	// tweakables
-	glm::vec3 eyepos(0, 0, 5);
+	glm::vec3 eyepos;
 	glm::vec4 basecolor1 = CShaderUtils::sRGBToLinear(0, 240, 240);
 	glm::vec4 basecolor2 = CShaderUtils::sRGBToLinear(255, 106, 0);
 	glm::vec4 basecolor3 = CShaderUtils::sRGBToLinear(0, 255, 0);
@@ -225,8 +255,12 @@ void CMyApp::Render()
 	float time = SDL_GetTicks() / 1000.0f;
 
 	// setup transforms
+	eyepos.x = cosf(time * 0.5f) * 7;
+	eyepos.y = sinf(time) * 2;
+	eyepos.z = sinf(time * 0.5f) * 7;
+
 	view = glm::lookAtRH(eyepos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	proj = glm::perspectiveFovRH<float>(glm::radians(80.0f), (float)windowWidth, (float)windowHeight, 0.1f, 30.0f);
+	proj = glm::perspectiveFovRH<float>(glm::radians(60.0f), (float)windowWidth, (float)windowHeight, 0.1f, 50.0f);
 
 	viewproj = proj * view;
 	worldinv = glm::inverse(world);
@@ -243,42 +277,60 @@ void CMyApp::Render()
 		glViewport(0, 0, windowWidth, windowHeight);
 
 		// update common uniforms
-		uniformTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
-		uniformTable.SetVector3fv("eyePos", 1, &eyepos.x);
+		lightProbeUniTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
+		lightProbeUniTable.SetVector3fv("eyePos", 1, &eyepos.x);
 
 		// sphere 1
 		world = glm::translate(glm::vec3(3, 0, -2));
 
-		uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
-		uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
-		uniformTable.SetVector4fv("baseColor", 1, &basecolor1.x);
-		uniformTable.SetFloat("roughness", 0.2f);
+		lightProbeUniTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+		lightProbeUniTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+		lightProbeUniTable.SetVector4fv("baseColor", 1, &basecolor1.x);
+		lightProbeUniTable.SetFloat("roughness", 0.2f);
 
 		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 
 		// sphere 2
 		world = glm::translate(glm::vec3(-3, -1, 0));
 
-		uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
-		uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
-		uniformTable.SetVector4fv("baseColor", 1, &basecolor2.x);
-		uniformTable.SetFloat("roughness", 0.5f);
+		lightProbeUniTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+		lightProbeUniTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+		lightProbeUniTable.SetVector4fv("baseColor", 1, &basecolor2.x);
+		lightProbeUniTable.SetFloat("roughness", 0.5f);
 
 		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 
 		// sphere 3
 		world = glm::translate(glm::vec3(-1, 1, -2));
 
-		uniformTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
-		uniformTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
-		uniformTable.SetVector4fv("baseColor", 1, &basecolor3.x);
-		uniformTable.SetFloat("roughness", 0.7f);
+		lightProbeUniTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+		lightProbeUniTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
+		lightProbeUniTable.SetVector4fv("baseColor", 1, &basecolor3.x);
+		lightProbeUniTable.SetFloat("roughness", 0.7f);
 
 		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 	}
 
 	// render pass 2 (sky dome)
+	{
+		// setup graphics pipeline
+		glUseProgram(skyCubePO);
+		glBindVertexArray(sphereVAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereIBO);
+		glFrontFace(GL_CW);
 
+		world = glm::translate(eyepos) * glm::scale(glm::vec3(20));
+
+		skyUniTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
+		skyUniTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
+		skyUniTable.SetVector3fv("eyePos", 1, &eyepos.x);
+		skyUniTable.SetInt("skyCube", 0);
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture);
+		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
+		
+		glFrontFace(GL_CCW);
+	}
 
 	// render pass 3 (tone mapping)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -291,7 +343,7 @@ void CMyApp::Render()
 		glViewport(0, 0, windowWidth, windowHeight);
 
 		// update uniforms
-		uniformTable.SetInt("sampler0", 0);
+		tonemapUniTable.SetInt("sampler0", 0);
 		glBindTexture(GL_TEXTURE_2D, renderTarget0);
 
 		// draw screen quad
