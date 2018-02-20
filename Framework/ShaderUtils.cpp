@@ -8,6 +8,7 @@
 
 #ifdef _MSC_VER
 #	include <Windows.h>
+#	include <Shlobj.h>
 #endif
 
 CShaderUtils::CShaderUtils()
@@ -26,11 +27,18 @@ GLuint CShaderUtils::FindAndCompileShader(GLenum type, const wchar_t* filename)
 #endif
 
 	// NOTE: defined in property sheet
-	std::wstring projectdir(MY_PROJECT_DIR);
-	std::wstring sourcefile(MY_PROJECT_DIR);
+	std::wstring sourcefile(MY_MEDIA_DIR);
 	FILE* infile = nullptr;
 
+	if (FALSE == PathResolve(&sourcefile[0], NULL, PRF_VERIFYEXISTS)) {
+		printf("[ShaderUtils] Media directory not found\n", sourcefile.c_str());
+		return 0;
+	}
+
+	sourcefile.resize(sourcefile.find_first_of(L'\0'));
+	sourcefile += L"\\Shaders\\";
 	sourcefile += filename;
+
 	_wfopen_s(&infile, sourcefile.c_str(), L"rb");
 
 	if (infile == nullptr) {

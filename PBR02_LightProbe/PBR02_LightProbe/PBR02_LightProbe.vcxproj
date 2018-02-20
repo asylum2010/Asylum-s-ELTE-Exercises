@@ -79,12 +79,12 @@
     <ClInclude Include="MyApp.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\PBR01_PointLight\PBR01_PointLight\screenquad.vert" />
-    <None Include="..\..\PBR01_PointLight\PBR01_PointLight\tonemap.frag" />
-    <None Include="lightprobe.frag" />
-    <None Include="lightprobe.vert" />
-    <None Include="sky.frag" />
-    <None Include="sky.vert" />
+    <None Include="..\..\Media\Shaders\lightprobe.frag" />
+    <None Include="..\..\Media\Shaders\lightprobe.vert" />
+    <None Include="..\..\Media\Shaders\screenquad.vert" />
+    <None Include="..\..\Media\Shaders\sky.frag" />
+    <None Include="..\..\Media\Shaders\sky.vert" />
+    <None Include="..\..\Media\Shaders\tonemap.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

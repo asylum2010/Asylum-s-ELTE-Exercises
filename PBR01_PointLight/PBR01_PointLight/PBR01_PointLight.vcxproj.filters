@@ -43,16 +43,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="pointlight.frag">
+    <None Include="..\..\Media\Shaders\pointlight.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="pointlight.vert">
+    <None Include="..\..\Media\Shaders\pointlight.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="tonemap.frag">
+    <None Include="..\..\Media\Shaders\screenquad.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="screenquad.vert">
+    <None Include="..\..\Media\Shaders\tonemap.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

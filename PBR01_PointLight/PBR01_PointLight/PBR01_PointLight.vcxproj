@@ -79,10 +79,10 @@
     <ClInclude Include="MyApp.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="pointlight.frag" />
-    <None Include="pointlight.vert" />
-    <None Include="tonemap.frag" />
-    <None Include="screenquad.vert" />
+    <None Include="..\..\Media\Shaders\pointlight.frag" />
+    <None Include="..\..\Media\Shaders\pointlight.vert" />
+    <None Include="..\..\Media\Shaders\screenquad.vert" />
+    <None Include="..\..\Media\Shaders\tonemap.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
