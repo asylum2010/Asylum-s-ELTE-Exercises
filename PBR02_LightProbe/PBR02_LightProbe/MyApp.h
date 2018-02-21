@@ -17,6 +17,10 @@
 #include "../../Framework/TextureUtils.h"
 
 // Tasks:
+// (1) complete the 'lightprobe.frag' shader by using the provided irradiance a BRDF LUT textures
+// (2) exchange the three spheres for a series of spheres which demonstrate how roughness works
+
+// (+) create your own preintegrated irradiance cubemaps, as my generator is bugged -.- (look through the code for URLs)
 
 class CMyApp
 {
@@ -54,7 +58,10 @@ private:
 	GLuint			renderTarget0;	// RGBA16F
 	GLuint			depthTarget;	// depth-stencil surface
 	
-	GLuint			skyTexture;
+	GLuint			skyTexture;		// for sky
+	GLuint			skyDiffIrrad;	// preintegrated diffuse irradiance
+	GLuint			skySpecIrrad;	// preintegrated specular irradiance
+	GLuint			brdfLUT;		// preintegrated BRDF lookup texture
 
 	GLuint			sphereVBO;		// sphere vertex data
 	GLuint			sphereIBO;		// sphere index data

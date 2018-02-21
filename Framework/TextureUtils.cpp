@@ -118,8 +118,45 @@ GLuint CTextureUtils::FindAndLoadTexture(const wchar_t* filename, bool srgb)
 		glGenTextures(1, &texid);
 
 		if (info.Type == TextureType2D) {
-			// TODO:
-			assert(false);
+			glBindTexture(GL_TEXTURE_2D, texid);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			if (info.MipLevels > 1)
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			else
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+			if (info.Format == PixelFormatCompressedDXT1 || info.Format == PixelFormatCompressedDXT5) {
+				// TODO:
+				assert(false);
+			} else {
+				// uncompressed
+				uint32_t bytes = 4;
+
+				if (info.Format == PixelFormatRG32Float)
+					bytes = 8;
+				else if (info.Format == PixelFormatRG16Float)
+					bytes = 4;
+				else if (info.Format == PixelFormatRGB8Unorm || info.Format == PixelFormatBGR8Unorm) {
+					bytes = 3;
+				}
+
+				if (srgb) {
+					// TODO: change format
+					assert(false);
+				}
+
+				uint32_t mipsize = info.Width * info.Height * bytes;
+
+				glTexImage2D(GL_TEXTURE_2D, 0, map_Format_Internal[info.Format], info.Width, info.Height, 0,
+					map_Format_Format[info.Format], map_Format_Type[info.Format], info.Data);
+
+				if (info.MipLevels > 1)
+					glGenerateMipmap(GL_TEXTURE_2D);
+			}
 		} else if (info.Type == TextureTypeCube) {
 			glBindTexture(GL_TEXTURE_CUBE_MAP, texid);
 
@@ -135,7 +172,7 @@ GLuint CTextureUtils::FindAndLoadTexture(const wchar_t* filename, bool srgb)
 			GLsizei pow2s = NextPow2(info.Width);
 			GLsizei facesize;
 			
-			if (info.Format == PixelFormatFormatCompressedDXT1 || info.Format == PixelFormatFormatCompressedDXT5) {
+			if (info.Format == PixelFormatCompressedDXT1 || info.Format == PixelFormatCompressedDXT5) {
 				// TODO:
 				assert(false);
 			} else {
@@ -144,7 +181,7 @@ GLuint CTextureUtils::FindAndLoadTexture(const wchar_t* filename, bool srgb)
 				GLsizei offset = 0;
 				GLsizei bytes = 4;
 
-				if (info.Format == PixelFormatFormatARGB16Float)
+				if (info.Format == PixelFormatARGB16Float)
 					bytes = 8;
 				else
 					assert(false);
@@ -161,26 +198,26 @@ GLuint CTextureUtils::FindAndLoadTexture(const wchar_t* filename, bool srgb)
 						offset += facesize;
 					}
 				}
-
-				if (info.Data)
-					free(info.Data);
-
-				GLenum err = glGetError();
-
-				if (err != GL_NO_ERROR) {
-					glDeleteTextures(1, &texid);
-					texid = 0;
-
-					printf("[TextureUtils] OpenGL error 0x%x\n", err);
-				}
 			}
 		} else {
 			// TODO:
 			assert(false);
 		}
+
+		if (info.Data)
+			free(info.Data);
 	} else {
 		// TODO:
 		assert(false);
+	}
+
+	GLenum err = glGetError();
+
+	if (err != GL_NO_ERROR) {
+		glDeleteTextures(1, &texid);
+		texid = 0;
+
+		printf("[TextureUtils] OpenGL error 0x%x\n", err);
 	}
 
 	return texid;

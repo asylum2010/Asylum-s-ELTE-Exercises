@@ -57,7 +57,29 @@ float G_Smith_Schlick(float ndotl, float ndotv)
 
 void main()
 {
-	// TODO:
+	const int numMipLevels = 8;	// this is how it was generated
 
-	my_FragColor0 = baseColor;
+	vec3 n = normalize(wnorm);
+	vec3 v = normalize(eyePos - wpos);
+	vec3 r = 2.0 * dot(v, n) * n - v;
+
+	float ndotv = max(dot(n, v), 0.0);
+	float miplevel = roughness * float(numMipLevels - 1);
+
+	// calculate luminance from preintegrated illuminances
+	vec3 f_lambert			= baseColor.rgb * ONE_OVER_PI;
+	vec3 diffuse_rad		= texture(irradianceDiffuse, n).rgb * f_lambert;
+	vec3 specular_rad		= textureLod(irradianceSpecular, r, miplevel).rgb;
+	vec2 f0_scale_bias		= texture(brdfLUT, vec2(ndotv, roughness)).rg;
+
+	if (metalness > 0.99)
+		diffuse_rad = vec3(0.0);
+
+	// calculate Fresnel term
+	vec3 F0 = mix(vec3(0.04), baseColor.rgb, metalness);
+	vec3 F = F0 * f0_scale_bias.x + vec3(f0_scale_bias.y);
+
+	// calculate output luminance
+	my_FragColor0.rgb = diffuse_rad + specular_rad * F;
+	my_FragColor0.a = 1.0;
 }

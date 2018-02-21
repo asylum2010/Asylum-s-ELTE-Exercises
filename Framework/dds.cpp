@@ -422,9 +422,9 @@ uint32_t GetCompressedImageSize(uint32_t width, uint32_t height, uint32_t miplev
 	uint32_t h = height;
 	uint32_t bytesize = 0;
 
-	if( format == PixelFormatFormatCompressedDXT1 || format == PixelFormatFormatCompressedDXT5 )
+	if( format == PixelFormatCompressedDXT1 || format == PixelFormatCompressedDXT5 )
 	{
-		uint32_t mult = ((format == PixelFormatFormatCompressedDXT5) ? 16 : 8);
+		uint32_t mult = ((format == PixelFormatCompressedDXT5) ? 16 : 8);
 
 		if( w != h )
 		{
@@ -459,9 +459,9 @@ uint32_t GetCompressedImageSize(uint32_t width, uint32_t height, uint32_t depth,
 	uint32_t d = depth;
 	uint32_t bytesize = 0;
 
-	if( format == PixelFormatFormatCompressedDXT1 || format == PixelFormatFormatCompressedDXT5 )
+	if( format == PixelFormatCompressedDXT1 || format == PixelFormatCompressedDXT5 )
 	{
-		uint32_t mult = ((format == PixelFormatFormatCompressedDXT5) ? 16 : 8);
+		uint32_t mult = ((format == PixelFormatCompressedDXT5) ? 16 : 8);
 
 		for( uint32_t i = 0; i < miplevels; ++i )
 		{
@@ -481,9 +481,9 @@ uint32_t GetCompressedLevelSize(uint32_t width, uint32_t height, uint32_t level,
 	uint32_t h = height;
 	uint32_t bytesize = 0;
 
-	if( format == PixelFormatFormatCompressedDXT1 || format == PixelFormatFormatCompressedDXT5 )
+	if( format == PixelFormatCompressedDXT1 || format == PixelFormatCompressedDXT5 )
 	{
-		uint32_t mult = ((format == PixelFormatFormatCompressedDXT5) ? 16 : 8);
+		uint32_t mult = ((format == PixelFormatCompressedDXT5) ? 16 : 8);
 
 		if( w != h )
 		{
@@ -517,9 +517,9 @@ uint32_t GetCompressedLevelSize(uint32_t width, uint32_t height, uint32_t depth,
 	uint32_t h = height;
 	uint32_t bytesize = 0;
 
-	if( format == PixelFormatFormatCompressedDXT1 || format == PixelFormatFormatCompressedDXT5 )
+	if( format == PixelFormatCompressedDXT1 || format == PixelFormatCompressedDXT5 )
 	{
-		uint32_t mult = ((format == PixelFormatFormatCompressedDXT5) ? 16 : 8);
+		uint32_t mult = ((format == PixelFormatCompressedDXT5) ? 16 : 8);
 
 		w = std::max<uint32_t>(w / (1 << level), 1);
 		h = std::max<uint32_t>(h / (1 << level), 1);
@@ -585,37 +585,37 @@ bool LoadFromDDS(const wchar_t* file, DDS_Image_Info* outinfo)
 	outinfo->Width		= header.dwWidth;
 	outinfo->Height		= header.dwHeight;
 	outinfo->Depth		= header.dwDepth;
-	outinfo->Format		= PixelFormatFormatInvalid;
+	outinfo->Format		= PixelFormatInvalid;
 	outinfo->MipLevels	= (header.dwMipMapCount == 0 ? 1 : header.dwMipMapCount);
 	outinfo->Data		= 0;
 
 	if( header.ddspf.dwFlags & DDPF_FOURCC ) {
 		if( header.ddspf.dwFourCC == DDSPF_DXT1.dwFourCC ) {
-			outinfo->Format = PixelFormatFormatCompressedDXT1;
+			outinfo->Format = PixelFormatCompressedDXT1;
 		} else if( header.ddspf.dwFourCC == DDSPF_DXT5.dwFourCC ) {
-			outinfo->Format = PixelFormatFormatCompressedDXT5;
+			outinfo->Format = PixelFormatCompressedDXT5;
 		} else if( header.ddspf.dwFourCC == 0x70 ) {
-			outinfo->Format = PixelFormatFormatRG16Float;
+			outinfo->Format = PixelFormatRG16Float;
 			header.ddspf.dwRGBBitCount = 32;
 		} else if( header.ddspf.dwFourCC == 0x71 ) {
-			outinfo->Format = PixelFormatFormatARGB16Float;
+			outinfo->Format = PixelFormatARGB16Float;
 			header.ddspf.dwRGBBitCount = 64;
 		} else if( header.ddspf.dwFourCC == 0x73 ) {
-			outinfo->Format = PixelFormatFormatRG32Float;
+			outinfo->Format = PixelFormatRG32Float;
 			header.ddspf.dwRGBBitCount = 64;
 		} else {
 			// unsupported
 			goto _fail;
 		}
 	} else if( header.ddspf.dwRGBBitCount == 32 ) {
-		outinfo->Format = PixelFormatFormatARGB8Unorm;
+		outinfo->Format = PixelFormatARGB8Unorm;
 	} else if( header.ddspf.dwRGBBitCount == 24 ) {
 		if( header.ddspf.dwRBitMask & 0x00ff0000 ) {
 			// ARGB (BGRA)
-			outinfo->Format = PixelFormatFormatBGR8Unorm;
+			outinfo->Format = PixelFormatBGR8Unorm;
 		} else {
 			// ABGR (RGBA)
-			outinfo->Format = PixelFormatFormatRGB8Unorm;
+			outinfo->Format = PixelFormatRGB8Unorm;
 		}
 	} else {
 		goto _fail;
@@ -625,7 +625,7 @@ bool LoadFromDDS(const wchar_t* file, DDS_Image_Info* outinfo)
 	{
 		outinfo->Type = TextureTypeVolume;
 
-		if( outinfo->Format == PixelFormatFormatCompressedDXT1 || outinfo->Format == PixelFormatFormatCompressedDXT5 )
+		if( outinfo->Format == PixelFormatCompressedDXT1 || outinfo->Format == PixelFormatCompressedDXT5 )
 		{
 			// compressed volume texture
 			bytesize = GetCompressedImageSize(outinfo->Width, outinfo->Height, outinfo->Depth, outinfo->MipLevels, outinfo->Format);
@@ -649,7 +649,7 @@ bool LoadFromDDS(const wchar_t* file, DDS_Image_Info* outinfo)
 	{
 		outinfo->Type = TextureTypeCube;
 
-		if( outinfo->Format == PixelFormatFormatCompressedDXT1 || outinfo->Format == PixelFormatFormatCompressedDXT5 )
+		if( outinfo->Format == PixelFormatCompressedDXT1 || outinfo->Format == PixelFormatCompressedDXT5 )
 		{
 			// compressed cubemap
 			bytesize = GetCompressedImageSize(outinfo->Width, outinfo->Height, outinfo->MipLevels, outinfo->Format) * 6;
@@ -673,7 +673,7 @@ bool LoadFromDDS(const wchar_t* file, DDS_Image_Info* outinfo)
 	{
 		outinfo->Type = TextureType2D;
 
-		if( outinfo->Format == PixelFormatFormatCompressedDXT1 || outinfo->Format == PixelFormatFormatCompressedDXT5 )
+		if( outinfo->Format == PixelFormatCompressedDXT1 || outinfo->Format == PixelFormatCompressedDXT5 )
 		{
 			// compressed
 			bytesize = GetCompressedImageSize(outinfo->Width, outinfo->Height, outinfo->MipLevels, outinfo->Format);

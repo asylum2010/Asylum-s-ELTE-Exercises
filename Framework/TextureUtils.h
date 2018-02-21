@@ -7,18 +7,18 @@
 
 enum PixelFormat
 {
-	PixelFormatFormatInvalid = 0,
-	PixelFormatFormatRGB8Unorm,
-	PixelFormatFormatBGR8Unorm,
-	PixelFormatFormatARGB8Unorm,
-	PixelFormatFormatARGB8Unorm_sRGB,
-	PixelFormatFormatCompressedDXT1,
-	PixelFormatFormatCompressedDXT1_sRGB,
-	PixelFormatFormatCompressedDXT5,
-	PixelFormatFormatCompressedDXT5_sRGB,
-	PixelFormatFormatRG16Float,
-	PixelFormatFormatARGB16Float,
-	PixelFormatFormatRG32Float
+	PixelFormatInvalid = 0,
+	PixelFormatRGB8Unorm,
+	PixelFormatBGR8Unorm,
+	PixelFormatARGB8Unorm,
+	PixelFormatARGB8Unorm_sRGB,
+	PixelFormatCompressedDXT1,
+	PixelFormatCompressedDXT1_sRGB,
+	PixelFormatCompressedDXT5,
+	PixelFormatCompressedDXT5_sRGB,
+	PixelFormatRG16Float,
+	PixelFormatARGB16Float,
+	PixelFormatRG32Float
 };
 
 enum TextureType

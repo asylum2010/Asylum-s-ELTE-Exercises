@@ -17,7 +17,12 @@ CMyApp::CMyApp(void)
 	framebuffer			= 0;
 	renderTarget0		= 0;
 	depthTarget			= 0;
+	
 	skyTexture			= 0;
+	skyDiffIrrad		= 0;
+	skySpecIrrad		= 0;
+	brdfLUT				= 0;
+	
 	sphereVBO			= 0;
 	sphereIBO			= 0;
 	sphereVAO			= 0;
@@ -175,9 +180,19 @@ bool CMyApp::Init()
 	// load textures
 	// http://www.pauldebevec.com/Probes/ (download cube cross versions in .hdr format)
 	// https://gpuopen.com/archive/gamescgi/cubemapgen/ (experiment, then filter and convert to .dds)
+	// https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/ (generate irradiance maps)
 
 	skyTexture = CTextureUtils::FindAndLoadTexture(L"grace2.dds", false);
 	assert(skyTexture != 0);
+
+	skyDiffIrrad = CTextureUtils::FindAndLoadTexture(L"grace2_diff_irrad.dds", false);
+	assert(skyDiffIrrad != 0);
+
+	skySpecIrrad = CTextureUtils::FindAndLoadTexture(L"grace2_spec_irrad.dds", false);
+	assert(skySpecIrrad != 0);
+
+	brdfLUT = CTextureUtils::FindAndLoadTexture(L"brdf.dds", false);
+	assert(brdfLUT != 0);
 
 	// create render targets (don't know size yet)
 	glGenTextures(1, &renderTarget0);
@@ -218,7 +233,12 @@ void CMyApp::Clean()
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteTextures(1, &renderTarget0);
 	glDeleteTextures(1, &depthTarget);
+
 	glDeleteTextures(1, &skyTexture);
+	glDeleteTextures(1, &skyDiffIrrad);
+	glDeleteTextures(1, &skySpecIrrad);
+	glDeleteTextures(1, &brdfLUT);
+
 	glDeleteProgram(skyCubePO);
 	glDeleteProgram(lightProbePO);
 	glDeleteProgram(tonemapPO);
@@ -245,7 +265,7 @@ void CMyApp::Render()
 	// tweakables
 	glm::vec3 eyepos;
 	glm::vec4 basecolor1 = CShaderUtils::sRGBToLinear(0, 240, 240);
-	glm::vec4 basecolor2 = CShaderUtils::sRGBToLinear(255, 106, 0);
+	glm::vec4 basecolor2(1.022f, 0.782f, 0.344f, 1);	// gold
 	glm::vec4 basecolor3 = CShaderUtils::sRGBToLinear(0, 255, 0);
 
 	glm::mat4 world, view, proj;
@@ -255,9 +275,9 @@ void CMyApp::Render()
 	float time = SDL_GetTicks() / 1000.0f;
 
 	// setup transforms
-	eyepos.x = cosf(time * 0.5f) * 7;
-	eyepos.y = sinf(time) * 2;
-	eyepos.z = sinf(time * 0.5f) * 7;
+	eyepos.x = cosf(time * 0.25f) * 7;
+	eyepos.y = sinf(time * 0.125f) * 3;
+	eyepos.z = sinf(time * 0.25f) * 7;
 
 	view = glm::lookAtRH(eyepos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	proj = glm::perspectiveFovRH<float>(glm::radians(60.0f), (float)windowWidth, (float)windowHeight, 0.1f, 50.0f);
@@ -279,39 +299,58 @@ void CMyApp::Render()
 		// update common uniforms
 		lightProbeUniTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
 		lightProbeUniTable.SetVector3fv("eyePos", 1, &eyepos.x);
+		lightProbeUniTable.SetInt("irradianceDiffuse", 0);
+		lightProbeUniTable.SetInt("irradianceSpecular", 1);
+		lightProbeUniTable.SetInt("brdfLUT", 2);
 
-		// sphere 1
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skyDiffIrrad);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skySpecIrrad);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, brdfLUT);
+
+		glActiveTexture(GL_TEXTURE0);
+
+		// sphere 1 (insulator)
 		world = glm::translate(glm::vec3(3, 0, -2));
 
 		lightProbeUniTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
 		lightProbeUniTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
 		lightProbeUniTable.SetVector4fv("baseColor", 1, &basecolor1.x);
-		lightProbeUniTable.SetFloat("roughness", 0.2f);
+		lightProbeUniTable.SetFloat("roughness", 0.1f);
+		lightProbeUniTable.SetFloat("metalness", 0.0f);
 
 		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 
-		// sphere 2
+		// sphere 2 (gold)
 		world = glm::translate(glm::vec3(-3, -1, 0));
 
 		lightProbeUniTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
 		lightProbeUniTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
 		lightProbeUniTable.SetVector4fv("baseColor", 1, &basecolor2.x);
-		lightProbeUniTable.SetFloat("roughness", 0.5f);
+		lightProbeUniTable.SetFloat("roughness", 0.01f);
+		lightProbeUniTable.SetFloat("metalness", 1.0f);
 
 		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 
-		// sphere 3
+		// sphere 3 (usually you don't want fractional metalness, but it can "emulate" clear coat shading)
 		world = glm::translate(glm::vec3(-1, 1, -2));
 
 		lightProbeUniTable.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
 		lightProbeUniTable.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
 		lightProbeUniTable.SetVector4fv("baseColor", 1, &basecolor3.x);
-		lightProbeUniTable.SetFloat("roughness", 0.7f);
-
+		lightProbeUniTable.SetFloat("roughness", 0.35f);
+		lightProbeUniTable.SetFloat("metalness", 0.5f);
+		
 		glDrawElements(GL_TRIANGLES, numSphereIndices, GL_UNSIGNED_INT, NULL);
 	}
 
-	// render pass 2 (sky dome)
+	// still render pass 1 (sky dome)
 	{
 		// setup graphics pipeline
 		glUseProgram(skyCubePO);
@@ -332,7 +371,7 @@ void CMyApp::Render()
 		glFrontFace(GL_CCW);
 	}
 
-	// render pass 3 (tone mapping)
+	// render pass 2 (tone mapping)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	{
