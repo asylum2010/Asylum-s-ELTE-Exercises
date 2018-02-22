@@ -67,11 +67,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\Framework\GeometryUtils.cpp" />
     <ClCompile Include="..\..\Framework\ShaderUtils.cpp" />
-    <ClCompile Include="..\..\OGLPack\include\imgui\imgui.cpp" />
-    <ClCompile Include="..\..\OGLPack\include\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\..\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyApp.cpp" />
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui.cpp" />
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui_draw.cpp" />
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\GeometryUtils.h" />
