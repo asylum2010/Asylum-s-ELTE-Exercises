@@ -181,6 +181,7 @@ bool CMyApp::Init()
 	// http://www.pauldebevec.com/Probes/ (download cube cross versions in .hdr format)
 	// https://gpuopen.com/archive/gamescgi/cubemapgen/ (experiment, then filter and convert to .dds)
 	// https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/ (generate irradiance maps)
+	// or use my solution (https://github.com/asylum2010/Asylum_Tutorials/tree/master/ShaderTutors/53_PrefilterEnvMap10)
 
 	skyTexture = CTextureUtils::FindAndLoadTexture(L"grace2.dds", false);
 	assert(skyTexture != 0);

@@ -20,7 +20,7 @@
 // (1) complete the 'lightprobe.frag' shader using the provided irradiance and BRDF LUT textures
 // (2) exchange the three spheres for a series of spheres which demonstrate varying roughness values
 
-// (+) create your own preintegrated irradiance cubemaps, as my generator is bugged -.- (look through the code for URLs)
+// (+) create your own preintegrated irradiance cubemaps (look through the code for URLs)
 
 class CMyApp
 {
