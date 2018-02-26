@@ -293,7 +293,7 @@ void CMyApp::Render()
 		glDepthFunc(GL_LESS);
 
 		pointLightTable.SetVector3fv("lightPos", 1, &lightpos1.x);
-		pointLightTable.SetFloat("luminousFlux", 3200);	// ~42 W
+		pointLightTable.SetFloat("luminousFlux", 3200);	// ~50 W (fluorescent)
 		
 		render_spheres();
 
