@@ -1,4 +1,4 @@
-# ELTE Asylum Exercises
+# Asylum's ELTE Exercises
 
 This project contains the solutions of the exercises I presented in my courses at ELTE (see http://m.cdn.blog.hu/da/darthasylum/tutorials/elte.html)
 
