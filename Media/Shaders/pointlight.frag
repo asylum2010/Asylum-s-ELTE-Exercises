@@ -24,7 +24,7 @@ out vec4 my_FragColor0;
 
 vec3 F_Schlick(vec3 f0, float u)
 {
-	return f0 + (vec3(1.0) - f0) * pow(1.0 - u, 5.0);
+	return f0 + (vec3(1.0) - f0) * pow(1.0 - u + EPSILON, 5.0);
 }
 
 float D_GGX(float ndoth)
