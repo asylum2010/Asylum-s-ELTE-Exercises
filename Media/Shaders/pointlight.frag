@@ -46,8 +46,8 @@ float G_Smith_Schlick(float ndotl, float ndotv)
 	float k = a * a * 0.125;
 
 	// shadowing/masking functions
-	float G1_l = ndotl * (1 - k) + k + EPSILON;
-	float G1_v = ndotv * (1 - k) + k + EPSILON;
+	float G1_l = ndotl * (1 - k) + k;
+	float G1_v = ndotv * (1 - k) + k;
 
 	// could be optimized out due to Cook-Torrance's denominator
 	return (ndotl / G1_l) * (ndotv / G1_v);
