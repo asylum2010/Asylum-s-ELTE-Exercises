@@ -45,32 +45,22 @@ public:
 private:
 	int				windowWidth;
 	int				windowHeight;
-	uint32_t		numSphereVertices;
-	uint32_t		numSphereIndices;
+	int				currSample;
+	float			time;
 
 	// locations of active uniforms
-	CUniformTable	skyUniTable;
-	CUniformTable	lightProbeUniTable;
+	CUniformTable	pathTracerUniTable;
 	CUniformTable	tonemapUniTable;
 
 	// GL objects
-	GLuint			framebuffer;	// to render in HDR
-	GLuint			renderTarget0;	// RGBA16F
-	GLuint			depthTarget;	// depth-stencil surface
+	GLuint			framebuffer;		// to render in HDR
+	GLuint			renderTargets[2];	// RGBA16F
+	GLuint			depthTarget;		// not needed, but hey...
 	
-	GLuint			skyTexture;		// for sky
-	GLuint			skyDiffIrrad;	// preintegrated diffuse irradiance
-	GLuint			skySpecIrrad;	// preintegrated specular irradiance
-	GLuint			brdfLUT;		// preintegrated BRDF lookup texture
+	GLuint			screenQuadVAO;		// empty, but needed
 
-	GLuint			sphereVBO;		// sphere vertex data
-	GLuint			sphereIBO;		// sphere index data
-	GLuint			sphereVAO;		// sphere input layout
-	GLuint			screenQuadVAO;	// empty, but needed
-	
-	GLuint			skyCubePO;		// for sky
-	GLuint			lightProbePO;	// for preintegrated light probe
-	GLuint			tonemapPO;		// for tone mapping
+	GLuint			pathTracerPO;		// path tracer
+	GLuint			tonemapPO;			// for tone mapping
 };
 
 #endif

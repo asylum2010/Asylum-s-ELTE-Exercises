@@ -61,5 +61,8 @@
     <None Include="..\..\Media\Shaders\tonemap.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\..\Media\Shaders\pathtracer.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

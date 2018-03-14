@@ -101,6 +101,7 @@
     <ClInclude Include="MyApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Media\Shaders\pathtracer.frag" />
     <None Include="..\..\Media\Shaders\screenquad.vert" />
     <None Include="..\..\Media\Shaders\tonemap.frag" />
   </ItemGroup>

@@ -19,6 +19,9 @@
     <ClCompile>
       <PreprocessorDefinitions>MY_PROJECT_DIR=LR"($(ProjectDir))";MY_MEDIA_DIR=LR"($(ProjectDir)..\..\Media)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>
