@@ -25,7 +25,7 @@ out vec4 my_FragColor0;
 
 struct SceneObject
 {
-	uint	type;
+	int		type;
 	vec4	params1;
 	vec4	params2;
 	vec3	color;
@@ -190,7 +190,7 @@ int FindIntersection(out vec3 pos, out vec3 norm, vec3 raystart, vec3 raydir, Sc
 {
 	vec3	bestn, n;
 	float	t, bestt	= FLT_MAX;
-	uint	geomtype;
+	int		geomtype;
 	int		index		= NUM_OBJECTS;
 	int		i;
 
