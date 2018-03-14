@@ -172,13 +172,17 @@ void CMyApp::Render()
 {
 	assert(windowWidth > 0);
 
+	static Uint32 last_time = SDL_GetTicks();
+	float delta_time = (SDL_GetTicks() - last_time) / 1000.0f;
+
+	time += delta_time;
+	last_time = SDL_GetTicks();
+
 	// tweakables
 	glm::vec3 eyepos(-3.67f, 4.63f, -3.67f);
 	glm::mat4 view, proj;
 	glm::mat4 viewproj;
 	glm::mat4 viewprojinv;
-
-	time += SDL_GetTicks() / 1000.0f;
 
 	view = glm::lookAtRH(eyepos, glm::vec3(0, 1.633f, 0), glm::vec3(0, 1, 0));
 	proj = glm::perspectiveFovRH<float>(glm::radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 20.0f);
@@ -220,6 +224,8 @@ void CMyApp::Render()
 			// draw screen quad
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
+	} else {
+		printf("Convergence finished\n");
 	}
 
 	// render pass 2 (tone mapping)

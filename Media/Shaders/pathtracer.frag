@@ -1,7 +1,7 @@
 
 #version 330
 
-#define NUM_OBJECTS		6	// uniform buffer would be better
+#define NUM_OBJECTS		7	// uniform buffer would be better
 #define TRACE_DEPTH		5
 
 #define ONE_OVER_PI		0.3183098861837906
@@ -167,7 +167,7 @@ vec3 CosineSample(vec3 n, vec3 pixel, float seed)
 	float u = Random(pixel, vec3(12.9898, 78.233, 151.7182), seed);
 	float v = Random(pixel, vec3(63.7264, 10.873, 623.6736), seed);
 
-	float phi = 2 * PI * u;
+	float phi = TWO_PI * u;
 	float costheta = sqrt(v);
 	float sintheta = sqrt(1 - costheta * costheta);
 
@@ -271,15 +271,17 @@ void main()
 {
 	// 2 - plane:		params1 = equation
 	// 4 - sphere:		params1 = position, radius
-	// 8 - box:			params1 = position, params2 = size
-	// 16 - cylinder:	params1 = position, params2 = axis, height
+	// 8 - box:			params1 = position;				params2 = size
+	// 16 - cylinder:	params1 = position, radius;		params2 = axis, height
 	// | 1 -> light		color = emitted luminance
 
 	SceneObject objects[NUM_OBJECTS] = SceneObject[NUM_OBJECTS](
 		// don't forget to calculate accurate luminance values for area lights
-		SceneObject(4|1,	vec4(0.75, 1.5, -1.4, 0.5),	vec4(0.0),					vec3(60.0)),	// <---- this is NOT flux!!!
+		SceneObject(4|1,	vec4(0.75, 3.0, -2.0, 0.5),	vec4(0.0),					vec3(60.0)),	// <---- this is NOT flux!!!
 
 		SceneObject(8,		vec4(0.0, 1.5, 1.6, 0.0),	vec4(5.0, 3.0, 0.5, 0.0),	vec3(1.0, 1.0, 1.0)),
+		SceneObject(16,		vec4(-0.6, 1.0, -0.5, 0.75), vec4(0.0, 1.0, 0.0, 2.0),	vec3(1.0)),
+
 		SceneObject(2,		vec4(-1.0, 0.0, 0.0, 4.0),	vec4(0.0),					vec3(1.0, 0.0, 0.0)),
 		SceneObject(2,		vec4(1.0, 0.0, 0.0, 4.0),	vec4(0.0),					vec3(0.0, 1.0, 0.0)),
 		SceneObject(2,		vec4(0.0, 0.0, -1.0, 3.5),	vec4(0.0),					vec3(1.0, 1.0, 1.0)),
