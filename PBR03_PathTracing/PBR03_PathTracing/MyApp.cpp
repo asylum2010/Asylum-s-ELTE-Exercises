@@ -23,6 +23,29 @@ CMyApp::CMyApp(void)
 
 	pathTracerPO		= 0;
 	tonemapPO			= 0;
+
+	// Example:
+	// Monte Carlo integrate sin(x) on [0, pi] with p(x) = 1 / pi (uniform distribution)
+
+	auto randomFloat = []() -> float {
+		return (rand() & 32767) / 32767.0f;
+	};
+
+	// P(x) = \int_0^x p(x) dx = \int_0^x dx / pi = x / pi
+	// P^-1(x) = pi * x
+	int N = 1024;
+	float estimate = 0;
+
+	for (int k = 0; k < N; ++k) {
+		float xi = randomFloat();
+		float x_k = xi * glm::pi<float>();
+
+		// PDF = 1 / pi
+		estimate += glm::pi<float>() * sinf(x_k);
+	}
+
+	estimate /= N;
+	printf("Estimate: %.6f\n", estimate);
 }
 
 CMyApp::~CMyApp(void)
@@ -143,6 +166,13 @@ bool CMyApp::Init()
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	// setup camera
+	camera.SetClipPlanes(0.1f, 20.0f);
+	camera.SetFov(glm::radians(45.0f));
+	camera.SetDistance(6);
+	camera.SetPosition(glm::vec3(0, 1.633f, 0));
+	camera.SetOrientation(glm::vec3(glm::radians(135.0f), glm::radians(30.0f), 0));
+
 	return true;
 }
 
@@ -179,13 +209,14 @@ void CMyApp::Render()
 	last_time = SDL_GetTicks();
 
 	// tweakables
-	glm::vec3 eyepos(-3.67f, 4.63f, -3.67f);
+	glm::vec3 eyepos;
 	glm::mat4 view, proj;
 	glm::mat4 viewproj;
 	glm::mat4 viewprojinv;
 
-	view = glm::lookAtRH(eyepos, glm::vec3(0, 1.633f, 0), glm::vec3(0, 1, 0));
 	proj = glm::perspectiveFovRH<float>(glm::radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 20.0f);
+
+	camera.GetViewMatrixAndEyePosition(view, eyepos);
 
 	viewproj = proj * view;
 	viewprojinv = glm::inverse(viewproj);
@@ -257,6 +288,13 @@ void CMyApp::KeyboardUp(SDL_KeyboardEvent& key)
 
 void CMyApp::MouseMove(SDL_MouseMotionEvent& mouse)
 {
+	if (mouse.state & SDL_BUTTON_LMASK) {
+		camera.OrbitRight(glm::radians((float)mouse.xrel));
+		camera.OrbitUp(glm::radians((float)mouse.yrel));
+
+		currSample = 0;
+		time = 0;
+	}
 }
 
 void CMyApp::MouseDown(SDL_MouseButtonEvent& mouse)
@@ -275,6 +313,8 @@ void CMyApp::Resize(int newwidth, int newheight)
 {
 	windowWidth = newwidth;
 	windowHeight = newheight;
+
+	camera.SetAspect((float)windowWidth / (float)windowHeight);
 
 	// reallocate render target storages
 	glBindTexture(GL_TEXTURE_2D, renderTargets[0]);

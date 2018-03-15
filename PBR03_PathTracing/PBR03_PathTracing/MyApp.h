@@ -15,6 +15,7 @@
 #include "../../Framework/GeometryUtils.h"
 #include "../../Framework/ShaderUtils.h"
 #include "../../Framework/TextureUtils.h"
+#include "../../Framework/ArcballCamera.h"
 
 // Tasks:
 // (1)
@@ -47,6 +48,8 @@ private:
 	int				windowHeight;
 	int				currSample;
 	float			time;
+
+	CArcballCamera	camera;
 
 	// locations of active uniforms
 	CUniformTable	pathTracerUniTable;

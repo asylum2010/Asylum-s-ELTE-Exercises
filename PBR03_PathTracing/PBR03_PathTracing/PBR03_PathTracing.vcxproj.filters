@@ -24,6 +24,9 @@
     <ClCompile Include="..\..\Framework\ShaderUtils.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Framework\ArcballCamera.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyApp.h" />
@@ -37,6 +40,9 @@
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Framework\ShaderUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\ArcballCamera.h">
       <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>
