@@ -50,3 +50,8 @@ void CArcballCamera::GetViewMatrixAndEyePosition(glm::mat4& outview, glm::vec3& 
 	outview[3][1] = -(outeye[0] * outview[0][1] + outeye[1] * outview[1][1] + outeye[2] * outview[2][1]);
 	outview[3][2] = -(outeye[0] * outview[0][2] + outeye[1] * outview[1][2] + outeye[2] * outview[2][2]);
 }
+
+void CArcballCamera::GetProjectionMatrix(glm::mat4& outproj) const
+{
+	outproj = glm::perspectiveFovRH<float>(mFov, mAspect, 1.0f, mNear, mFar);
+}

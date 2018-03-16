@@ -214,9 +214,8 @@ void CMyApp::Render()
 	glm::mat4 viewproj;
 	glm::mat4 viewprojinv;
 
-	proj = glm::perspectiveFovRH<float>(glm::radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 20.0f);
-
 	camera.GetViewMatrixAndEyePosition(view, eyepos);
+	camera.GetProjectionMatrix(proj);
 
 	viewproj = proj * view;
 	viewprojinv = glm::inverse(viewproj);
