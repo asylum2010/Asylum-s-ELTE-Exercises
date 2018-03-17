@@ -24,15 +24,16 @@ CMyApp::CMyApp(void)
 	pathTracerPO		= 0;
 	tonemapPO			= 0;
 
-	// Example:
-	// Monte Carlo integrate sin(x) on [0, pi] with p(x) = 1 / pi (uniform distribution)
-
 	auto randomFloat = []() -> float {
 		return (rand() & 32767) / 32767.0f;
 	};
 
+	// Example 1:
+	// Monte Carlo integrate sin(x) over [0, pi] with p(x) = 1 / pi (uniform distribution)
+
 	// P(x) = \int_0^x p(x) dx = \int_0^x dx / pi = x / pi
 	// P^-1(x) = pi * x
+	
 	int N = 1024;
 	float estimate = 0;
 
@@ -42,6 +43,25 @@ CMyApp::CMyApp(void)
 
 		// PDF = 1 / pi
 		estimate += glm::pi<float>() * sinf(x_k);
+	}
+
+	estimate /= N;
+	printf("Estimate: %.6f\n", estimate);
+
+	// Example 2:
+	// Monte Carlo integrate sin(x)*cos(2x) over [0, pi] with p(x) = sin(x) / 2
+
+	// P(x) = \int_0^x p(x) = (1 - cos(x)) / 2
+	// P^-1(x) = acos(1 - 2x)
+
+	estimate = 0;
+
+	for (int k = 0; k < N; ++k) {
+		float xi = randomFloat();
+		float x_k = acosf(1 - 2 * xi);
+
+		// PDF = sin(x) / 2
+		estimate += 2 * cosf(2 * x_k);
 	}
 
 	estimate /= N;
