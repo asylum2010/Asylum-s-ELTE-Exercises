@@ -1,12 +1,13 @@
 
 #version 330
 
-#define NUM_OBJECTS		7	// uniform buffer would be better
+#define NUM_OBJECTS		8	// uniform buffer would be better
 #define TRACE_DEPTH		5
 
 #define ONE_OVER_PI		0.3183098861837906
 #define PI				3.1415926535897932
 #define TWO_PI			6.2831853071795864
+#define EPSILON			1e-5				// to avoid division with zero
 
 #ifndef FLT_MAX
 #define FLT_MAX			3.402823466e+38
@@ -28,6 +29,7 @@ struct SceneObject
 	int		type;
 	vec4	params1;
 	vec4	params2;
+	vec4	params3;	// roughness, metalness, 0, 0
 	vec3	color;
 };
 
@@ -162,16 +164,10 @@ float Random(vec3 pixel, vec3 scale, float seed)
 	return fract(sin(dot(pixel + vec3(seed), scale)) * 43758.5453 + seed);
 }
 
-vec3 CosineSample(vec3 n, vec3 pixel, float seed)
+vec3 TransformToHemisphere(vec3 n, float phi, float costheta)
 {
-	float u = Random(pixel, vec3(12.9898, 78.233, 151.7182), seed);
-	float v = Random(pixel, vec3(63.7264, 10.873, 623.6736), seed);
-
-	float phi = TWO_PI * u;
-	float costheta = sqrt(v);
-	float sintheta = sqrt(1 - costheta * costheta);
-
 	vec3 H;
+	float sintheta = sqrt(1.0 - costheta * costheta);
 
 	H.x = sintheta * cos(phi);
 	H.y = sintheta * sin(phi);
@@ -182,6 +178,82 @@ vec3 CosineSample(vec3 n, vec3 pixel, float seed)
 	vec3 bitangent = cross(n, tangent);
 
 	return tangent * H.x + bitangent * H.y + n * H.z;
+}
+
+vec3 CosineSample(vec3 n, vec3 pixel, float seed)
+{
+	float u = Random(pixel, vec3(12.9898, 78.233, 151.7182), seed);
+	float v = Random(pixel, vec3(63.7264, 10.873, 623.6736), seed);
+
+	float phi = TWO_PI * u;
+	float costheta = sqrt(v);
+
+	// PDF = cos(theta) / PI
+	return TransformToHemisphere(n, phi, costheta);
+}
+
+vec3 GGXSample(vec3 n, vec3 pixel, float roughness, float seed)
+{
+	float u = Random(pixel, vec3(12.9898, 78.233, 151.7182), seed);
+	float v = Random(pixel, vec3(63.7264, 10.873, 623.6736), seed);
+
+	float a = roughness * roughness;
+	float a2 = a * a;
+
+	float phi = TWO_PI * u;
+	float costheta = sqrt((1.0 - v) / (1.0 + (a2 - 1.0) * v));
+
+	// PDF = (D(h) * dot(n, h)) / (4 * dot(v, h))
+	return TransformToHemisphere(n, phi, costheta);
+}
+
+// --- BRDF functions --------------------------------------------------------------
+
+vec3 F_Schlick(vec3 f0, float u)
+{
+	return f0 + (vec3(1.0) - f0) * pow(1.0 - u + EPSILON, 5.0);
+}
+
+float D_GGX(float ndoth, float roughness)
+{
+	// Disney's suggestion
+	float a = roughness * roughness;
+	float a2 = a * a;
+
+	// optimized formula for the GPU
+	float d = (ndoth * a2 - ndoth) * ndoth + 1.0;
+
+	return a2 / (PI * d * d + EPSILON);
+}
+
+float G_Smith_Schlick(float ndotl, float ndotv, float roughness)
+{
+	// Disney's suggestion
+	float a = roughness + 1.0;
+	float k = a * a * 0.125;
+
+	// shadowing/masking functions
+	float G1_l = ndotl * (1 - k) + k;
+	float G1_v = ndotv * (1 - k) + k;
+
+	// could be optimized out due to Cook-Torrance's denominator
+	return (ndotl / G1_l) * (ndotv / G1_v);
+}
+
+vec3 CookTorrance_GGX(vec3 l, vec3 v, vec3 h, vec3 n, vec3 F0, float roughness)
+{
+	float ndotv = max(dot(n, v), 0.0);
+	float ndotl = max(dot(n, l), 0.0);
+	float ndoth = max(dot(n, h), 0.0);
+	float ldoth = max(dot(l, h), 0.0);
+	float vdoth = max(dot(v, h), 0.0);
+
+	float D = D_GGX(ndoth, roughness);
+	vec3 F = F_Schlick(F0, ldoth);
+	float G = G_Smith_Schlick(ndotl, ndotv, roughness);
+
+	// PDF = (D(h) * dot(n, h)) / (4 * dot(v, h))
+	return (F * G * vdoth) / (ndotv * ndoth + EPSILON);
 }
 
 // --- Path tracer -----------------------------------------------------------------
@@ -231,8 +303,7 @@ vec3 TraceScene(vec3 raystart, vec3 raydir, vec3 pixel, SceneObject objects[NUM_
 	vec3	n, p;
 	vec3	indirect = vec3(1.0);
 	vec3	lightlum = vec3(0.0);
-	vec3	fr_cos_over_pdf;
-	vec3	fd;
+	vec3	fd, fs;
 	int		index, j;
 
 	p = raystart;
@@ -250,14 +321,25 @@ vec3 TraceScene(vec3 raystart, vec3 raydir, vec3 pixel, SceneObject objects[NUM_
 			break;
 		}
 
-		// Lambert (PDF = cos(theta) / PI)
-		fd = objects[index].color * ONE_OVER_PI;
+		float roughness = objects[index].params3.x;
+		float metalness = objects[index].params3.y;
 
-		inray = CosineSample(n, pixel, time + float(j));
+		// TODO: multiple importance sampling (very hard for Cook-Torrance...)
 
-		// cos(theta) drops out because of PDF
-		fr_cos_over_pdf = fd * PI;
-		indirect *= fr_cos_over_pdf;
+		if (metalness > 0.5) {
+			// Cook-Torrance (PDF = D(h) * dot(n, h)) / (4 * dot(v, h))
+			vec3 h = GGXSample(n, pixel, roughness, time + float(j));
+			inray = outray - 2.0 * dot(outray, h) * h;
+
+			fs = CookTorrance_GGX(inray, -outray, h, n, objects[index].color, roughness);
+			indirect *= fs;
+		} else {
+			// Lambert (PDF = cos(theta) / PI)
+			inray = CosineSample(n, pixel, time + float(j));
+			fd = objects[index].color;
+
+			indirect *= fd;
+		}
 
 		outray = inray;
 	}
@@ -277,15 +359,18 @@ void main()
 
 	SceneObject objects[NUM_OBJECTS] = SceneObject[NUM_OBJECTS](
 		// don't forget to calculate accurate luminance values for area lights
-		SceneObject(4|1,	vec4(0.75, 3.0, -2.0, 0.5),	vec4(0.0),					vec3(60.0)),	// <---- this is NOT flux!!!
+		SceneObject(4|1,	vec4(0.75, 3.0, -2.0, 0.5),		vec4(0.0),					vec4(1.0, 0.0, 0.0, 0.0),	vec3(60.0)),				// <---- this is NOT flux!!!
 
-		SceneObject(8,		vec4(0.0, 1.5, 1.6, 0.0),	vec4(5.0, 3.0, 0.5, 0.0),	vec3(1.0, 1.0, 1.0)),
-		SceneObject(16,		vec4(-0.6, 1.0, -0.5, 0.75), vec4(0.0, 1.0, 0.0, 2.0),	vec3(1.0)),
+//		SceneObject(8,		vec4(0.0, 1.5, 1.6, 0.0),		vec4(5.0, 3.0, 0.5, 0.0),	vec4(1.0, 0.0, 0.0, 0.0),	vec3(1.0, 1.0, 1.0)),		// wall, insulator
+		SceneObject(8,		vec4(0.0, 1.5, 1.6, 0.0),		vec4(5.0, 3.0, 0.5, 0.0),	vec4(0.1, 1.0, 0.0, 0.0),	vec3(0.972, 0.96, 0.915)),	// wall, silver
+		SceneObject(16,		vec4(-0.6, 1.0, -0.5, 0.75),	vec4(0.0, 1.0, 0.0, 2.0),	vec4(1.0, 0.0, 0.0, 0.0),	vec3(1.0, 1.0, 1.0)),
 
-		SceneObject(2,		vec4(-1.0, 0.0, 0.0, 4.0),	vec4(0.0),					vec3(1.0, 0.0, 0.0)),
-		SceneObject(2,		vec4(1.0, 0.0, 0.0, 4.0),	vec4(0.0),					vec3(0.0, 1.0, 0.0)),
-		SceneObject(2,		vec4(0.0, 0.0, -1.0, 3.5),	vec4(0.0),					vec3(1.0, 1.0, 1.0)),
-		SceneObject(2,		vec4(0.0, 1.0, 0.0, 0.0),	vec4(0.0),					vec3(1.0, 1.0, 1.0))
+		SceneObject(2,		vec4(-1.0, 0.0, 0.0, 4.0),		vec4(0.0),					vec4(1.0, 0.0, 0.0, 0.0),	vec3(1.0, 0.0, 0.0)),
+		SceneObject(2,		vec4(1.0, 0.0, 0.0, 5.0),		vec4(0.0),					vec4(1.0, 0.0, 0.0, 0.0),	vec3(0.0, 1.0, 0.0)),
+		SceneObject(2,		vec4(0.0, 0.0, -1.0, 3.5),		vec4(0.0),					vec4(1.0, 0.0, 0.0, 0.0),	vec3(1.0, 1.0, 1.0)),
+		SceneObject(2,		vec4(0.0, 0.0, 1.0, 5.0),		vec4(0.0),					vec4(1.0, 0.0, 0.0, 0.0),	vec3(1.0, 1.0, 1.0)),
+//		SceneObject(2,		vec4(0.0, 1.0, 0.0, 0.0),		vec4(0.0),					vec4(0.5, 1.0, 0.0, 0.0),	vec3(0.955, 0.638, 0.538))	// ground, copper
+		SceneObject(2,		vec4(0.0, 1.0, 0.0, 0.0),		vec4(0.0),					vec4(1.0, 0.0, 0.0, 0.0),	vec3(1.0, 1.0, 1.0))		// ground, insulator
 	);
 
 	vec4 spos = vec4(tex * 2.0 - vec2(1.0), 0.1, 1.0);

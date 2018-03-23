@@ -51,7 +51,7 @@ CMyApp::CMyApp(void)
 	// Example 2:
 	// Monte Carlo integrate sin(x)*cos(2x) over [0, pi] with p(x) = sin(x) / 2
 
-	// P(x) = \int_0^x p(x) = (1 - cos(x)) / 2
+	// P(x) = \int_0^x p(x) dx = (1 - cos(x)) / 2
 	// P^-1(x) = acos(1 - 2x)
 
 	estimate = 0;
@@ -310,6 +310,16 @@ void CMyApp::MouseMove(SDL_MouseMotionEvent& mouse)
 	if (mouse.state & SDL_BUTTON_LMASK) {
 		camera.OrbitRight(glm::radians((float)mouse.xrel));
 		camera.OrbitUp(glm::radians((float)mouse.yrel));
+
+		currSample = 0;
+		time = 0;
+	} else if (mouse.state & SDL_BUTTON_MMASK) {
+		float scale = camera.GetDistance() / 10.0f;
+		float amount = 1e-3f + scale * (0.1f - 1e-3f);
+
+		// NOTE: inverting on x is more natural (phones/tablets)
+		camera.PanRight(mouse.xrel * -amount);
+		camera.PanUp(mouse.yrel * amount);
 
 		currSample = 0;
 		time = 0;

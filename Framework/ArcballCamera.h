@@ -23,8 +23,13 @@ public:
 
 	void OrbitRight(float angle);
 	void OrbitUp(float angle);
+	void PanRight(float offset);
+	void PanUp(float offset);
+
 	void GetViewMatrixAndEyePosition(glm::mat4& outview, glm::vec3& outeye) const;
 	void GetProjectionMatrix(glm::mat4& outproj) const;
+
+	inline float GetDistance() const					{ return mDistance; }
 
 	inline void SetPosition(const glm::vec3& pos)		{ mPosition = pos; }
 	inline void SetOrientation(const glm::vec3& ypr)	{ mAngles = ypr; }

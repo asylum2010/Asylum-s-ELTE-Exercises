@@ -29,6 +29,34 @@ void CArcballCamera::OrbitUp(float angle)
 	mAngles[1] = glm::clamp(mAngles[1], -glm::half_pi<float>(), glm::half_pi<float>());
 }
 
+void CArcballCamera::PanRight(float offset)
+{
+	glm::mat4 rot;
+	glm::vec3 right;
+
+	rot = glm::rotate(mAngles[1], glm::vec3(1, 0, 0)) * glm::rotate(mAngles[0], glm::vec3(0, 1, 0));
+
+	right.x = rot[0][0];
+	right.y = rot[1][0];
+	right.z = rot[2][0];
+
+	mPosition += right * offset;
+}
+
+void CArcballCamera::PanUp(float offset)
+{
+	glm::mat4 rot;
+	glm::vec3 up;
+
+	rot = glm::rotate(mAngles[1], glm::vec3(1, 0, 0)) * glm::rotate(mAngles[0], glm::vec3(0, 1, 0));
+
+	up.x = rot[0][1];
+	up.y = rot[1][1];
+	up.z = rot[2][1];
+
+	mPosition += up * offset;
+}
+
 void CArcballCamera::GetViewMatrixAndEyePosition(glm::mat4& outview, glm::vec3& outeye) const
 {
 	glm::mat4 yaw, pitch;
@@ -39,7 +67,7 @@ void CArcballCamera::GetViewMatrixAndEyePosition(glm::mat4& outview, glm::vec3& 
 
 	outview = pitch * yaw;
 
-	// don't forget that rotation matrices are different thatn lookAtRH
+	// don't forget that rotation matrices are different than lookAtRH
 	forward.x = -outview[0][2];
 	forward.y = -outview[1][2];
 	forward.z = -outview[2][2];
