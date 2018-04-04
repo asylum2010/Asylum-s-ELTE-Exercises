@@ -248,7 +248,6 @@ vec3 CookTorrance_GGX(vec3 l, vec3 v, vec3 h, vec3 n, vec3 F0, float roughness)
 	float ldoth = max(dot(l, h), 0.0);
 	float vdoth = max(dot(v, h), 0.0);
 
-	float D = D_GGX(ndoth, roughness);
 	vec3 F = F_Schlick(F0, ldoth);
 	float G = G_Smith_Schlick(ndotl, ndotv, roughness);
 

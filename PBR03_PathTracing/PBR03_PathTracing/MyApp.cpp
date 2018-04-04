@@ -228,7 +228,6 @@ void CMyApp::Render()
 	time += delta_time;
 	last_time = SDL_GetTicks();
 
-	// tweakables
 	glm::vec3 eyepos;
 	glm::mat4 view, proj;
 	glm::mat4 viewproj;
@@ -241,7 +240,7 @@ void CMyApp::Render()
 	viewprojinv = glm::inverse(viewproj);
 
 	if (currSample == 0) {
-		// clear it so we don't read junk
+		// clear it so we won't read junk
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTargets[0], 0);
 		
