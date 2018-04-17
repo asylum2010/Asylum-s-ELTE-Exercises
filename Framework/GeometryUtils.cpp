@@ -14,6 +14,50 @@ CGeometryUtils::~CGeometryUtils()
 {
 }
 
+void CGeometryUtils::CreateBox(SCommonVertex* outvdata, uint32_t* outidata, float width, float height, float depth)
+{
+	outvdata[0] = { width * -0.5f, height * -0.5f, depth * 0.5f,	1, 0,	0, -1, 0 };
+	outvdata[1] = { width * -0.5f, height * -0.5f, depth * -0.5f,	1, 1,	0, -1, 0 };
+	outvdata[2] = { width * 0.5f, height * -0.5f, depth * -0.5f,	0, 1,	0, -1, 0 };
+	outvdata[3] = { width * 0.5f, height * -0.5f, depth * 0.5f,		0, 0,	0, -1, 0 };
+
+	outvdata[4] = { width * -0.5f, height * 0.5f, depth * 0.5f,		0, 0,	0, 1, 0 };
+	outvdata[5] = { width * 0.5f, height * 0.5f, depth * 0.5f,		1, 0,	0, 1, 0 };
+	outvdata[6] = { width * 0.5f, height * 0.5f, depth * -0.5f,		1, 1,	0, 1, 0 };
+	outvdata[7] = { width * -0.5f, height * 0.5f, depth * -0.5f,	0, 1,	0, 1, 0 };
+
+	outvdata[8] = { width * -0.5f, height * -0.5f, depth * 0.5f,	0, 0,	0, 0, 1 };
+	outvdata[9] = { width * 0.5f, height * -0.5f, depth * 0.5f,		1, 0,	0, 0, 1 };
+	outvdata[10] = { width * 0.5f, height * 0.5f, depth * 0.5f,		1, 1,	0, 0, 1 };
+	outvdata[11] = { width * -0.5f, height * 0.5f, depth * 0.5f,	0, 1,	0, 0, 1 };
+
+	outvdata[12] = { width * 0.5f, height * -0.5f, depth * 0.5f,	0, 0,	1, 0, 0 };
+	outvdata[13] = { width * 0.5f, height * -0.5f, depth * -0.5f,	1, 0,	1, 0, 0 };
+	outvdata[14] = { width * 0.5f, height * 0.5f, depth * -0.5f,	1, 1,	1, 0, 0 };
+	outvdata[15] = { width * 0.5f, height * 0.5f, depth * 0.5f,		0, 1,	1, 0, 0 };
+
+	outvdata[16] = { width * 0.5f, height * -0.5f, depth * -0.5f,	0, 0,	0, 0, -1 };
+	outvdata[17] = { width * -0.5f, height * -0.5f, depth * -0.5f,	1, 0,	0, 0, -1 };
+	outvdata[18] = { width * -0.5f, height * 0.5f, depth * -0.5f,	1, 1,	0, 0, -1 };
+	outvdata[19] = { width * 0.5f, height * 0.5f, depth * -0.5f,	0, 1,	0, 0, -1 };
+
+	outvdata[20] = { width * -0.5f, height * -0.5f, depth * -0.5f,	0, 0,	-1, 0, 0 };
+	outvdata[21] = { width * -0.5f, height * -0.5f, depth * 0.5f,	1, 0,	-1, 0, 0 };
+	outvdata[22] = { width * -0.5f, height * 0.5f, depth * 0.5f,	1, 1,	-1, 0, 0 };
+	outvdata[23] = { width * -0.5f, height * 0.5f, depth * -0.5f,	0, 1,	-1, 0, 0 };
+
+	uint32_t indices[36] = {
+		0, 1, 2, 2, 3, 0, 
+		4, 5, 6, 6, 7, 4,
+		8, 9, 10, 10, 11, 8,
+		12, 13, 14, 14, 15, 12,
+		16, 17, 18, 18, 19, 16,
+		20, 21, 22, 22, 23, 20
+	};
+
+	memcpy(outidata, indices, 36 * sizeof(uint32_t));
+}
+
 void CGeometryUtils::CreateSphere(SCommonVertex* outvdata, uint32_t* outidata, float radius, uint16_t vsegments, uint16_t hsegments)
 {
 	assert(radius > 0.0f);

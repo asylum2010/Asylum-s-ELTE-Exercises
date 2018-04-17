@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{7d03f1b4-d460-4d9d-b71a-0ab67f75ef5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Extern">
+      <UniqueIdentifier>{735d07f3-6ef1-429f-96d1-f87ff9e26d2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Extern\imgui">
+      <UniqueIdentifier>{a767ae17-60ac-4774-837d-f1b8e15cf923}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{c437c8fb-012a-4bfe-8da4-320ff97842c0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui_draw.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\GeometryUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\ShaderUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MyApp.cpp" />
+    <ClCompile Include="..\..\Framework\ArcballCamera.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\ManifoldUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Framework\GeometryUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\ShaderUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="MyApp.h" />
+    <ClInclude Include="..\..\Framework\ArcballCamera.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\ManifoldUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Media\Shaders\pointlight.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\pointlight.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\screenquad.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\tonemap.frag">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PBR02_LightProbe", "PBR02_L
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PBR03_PathTracing", "PBR03_PathTracing\PBR03_PathTracing\PBR03_PathTracing.vcxproj", "{CF046A0A-2E56-4170-9A7C-766A278C557F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GFX01_ShadowVolume", "GFX01_ShadowVolume\GFX01_ShadowVolume\GFX01_ShadowVolume.vcxproj", "{40DDB7F7-3E9A-4175-8084-425C961AB149}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -27,6 +29,10 @@ Global
 		{CF046A0A-2E56-4170-9A7C-766A278C557F}.Debug|x64.Build.0 = Debug|x64
 		{CF046A0A-2E56-4170-9A7C-766A278C557F}.Release|x64.ActiveCfg = Release|x64
 		{CF046A0A-2E56-4170-9A7C-766A278C557F}.Release|x64.Build.0 = Release|x64
+		{40DDB7F7-3E9A-4175-8084-425C961AB149}.Debug|x64.ActiveCfg = Debug|x64
+		{40DDB7F7-3E9A-4175-8084-425C961AB149}.Debug|x64.Build.0 = Debug|x64
+		{40DDB7F7-3E9A-4175-8084-425C961AB149}.Release|x64.ActiveCfg = Release|x64
+		{40DDB7F7-3E9A-4175-8084-425C961AB149}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

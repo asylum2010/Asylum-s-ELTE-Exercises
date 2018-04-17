@@ -18,7 +18,9 @@ private:
 	~CGeometryUtils();
 
 public:
+	static void CreateBox(SCommonVertex* outvdata, uint32_t* outidata, float width, float height, float depth);
 	static void CreateSphere(SCommonVertex* outvdata, uint32_t* outidata, float radius, uint16_t vsegments, uint16_t hsegments);
+
 	static void NumVerticesIndicesSphere(uint32_t& outnumverts, uint32_t& outnuminds, uint16_t vsegments, uint16_t hsegments);
 };
 
