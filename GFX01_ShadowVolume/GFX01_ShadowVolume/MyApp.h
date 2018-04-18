@@ -18,10 +18,11 @@
 #include "../../Framework/ArcballCamera.h"
 
 // Tasks:
-// (1)
-// (2)
+// (1) modify 'extrude.geom', so that it extrudes the objects along the first light
+// (2) fill the stencil buffer with Carmack's reverse, test shadows
+// (3) enable the second light
 
-// (+)
+// (+) implement the method w/o 2-manifolds (that is, no silhouette detection)
 
 class CMyApp
 {
