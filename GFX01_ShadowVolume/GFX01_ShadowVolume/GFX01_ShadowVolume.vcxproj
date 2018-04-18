@@ -29,10 +29,15 @@
     <ClInclude Include="MyApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Media\Shaders\extrude.frag" />
+    <None Include="..\..\Media\Shaders\extrude.geom" />
+    <None Include="..\..\Media\Shaders\extrude.vert" />
     <None Include="..\..\Media\Shaders\pointlight.frag" />
     <None Include="..\..\Media\Shaders\pointlight.vert" />
     <None Include="..\..\Media\Shaders\screenquad.vert" />
     <None Include="..\..\Media\Shaders\tonemap.frag" />
+    <None Include="..\..\Media\Shaders\zonly.frag" />
+    <None Include="..\..\Media\Shaders\zonly.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{40DDB7F7-3E9A-4175-8084-425C961AB149}</ProjectGuid>

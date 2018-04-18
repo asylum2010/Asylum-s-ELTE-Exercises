@@ -58,7 +58,7 @@ int main(int argc, char* args[])
 
 	// create window
 	SDL_Window* win = SDL_CreateWindow(
-		"GFX exercise 01: Shadow volumes",
+		"GFX exercise 01: Multi-pass shadow volumes",
 		100,
 		100,
 		640,

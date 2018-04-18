@@ -44,6 +44,10 @@ public:
 	void Resize(int, int);
 
 private:
+	GLuint AssembleProgram(CUniformTable& outtable, const wchar_t* vsfile, const wchar_t* gsfile, const wchar_t* fsfile);
+	void FillStencilBuffer(const glm::vec3& lightpos, const glm::mat4& viewproj);
+	void RenderObjects(CUniformTable& table);
+
 	int				windowWidth;
 	int				windowHeight;
 
@@ -56,6 +60,8 @@ private:
 
 	// locations of active uniforms
 	CUniformTable	pointLightTable;
+	CUniformTable	zOnlyTable;
+	CUniformTable	extrudeTable;
 	CUniformTable	tonemapTable;
 
 	// GL objects
@@ -74,6 +80,8 @@ private:
 	GLuint			screenQuadVAO;	// empty, but needed
 
 	GLuint			pointLightPO;	// for objects
+	GLuint			zOnlyPO;		// for objects
+	GLuint			extrudePO;		// for shadow volumes
 	GLuint			tonemapPO;		// for tone mapping
 };
 

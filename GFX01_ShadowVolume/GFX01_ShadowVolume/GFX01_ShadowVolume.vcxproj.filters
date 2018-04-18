@@ -67,5 +67,20 @@
     <None Include="..\..\Media\Shaders\tonemap.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\..\Media\Shaders\zonly.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\zonly.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\extrude.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\extrude.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\extrude.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
