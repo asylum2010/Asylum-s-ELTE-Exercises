@@ -75,6 +75,7 @@ private:
 
 public:
 	static GLuint FindAndCompileShader(GLenum type, const wchar_t* filename);
+	static GLuint AssembleProgram(CUniformTable& outtable, const wchar_t* vsfile, const wchar_t* gsfile, const wchar_t* fsfile);
 	static bool ValidateShaderProgram(GLuint program);
 	static void QueryUniformLocations(CUniformTable& outmap, GLuint program);
 	static glm::vec4 sRGBToLinear(uint8_t red, uint8_t green, uint8_t blue);

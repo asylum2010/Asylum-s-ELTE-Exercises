@@ -19,10 +19,10 @@
 
 // Tasks:
 // (1) modify 'extrude.geom', so that it extrudes the objects along the first light
-// (2) fill the stencil buffer with Carmack's reverse, test shadows
-// (3) enable the second light
+// (2) fill the stencil buffer with Carmack's reverse, implement shadows
+// (3) enable the second light, complete its code
 
-// (+) implement the method w/o 2-manifolds (that is, no silhouette detection)
+// (+) implement the method w/o 2-manifolds (that is, w/o silhouette detection)
 
 class CMyApp
 {
@@ -45,7 +45,6 @@ public:
 	void Resize(int, int);
 
 private:
-	GLuint AssembleProgram(CUniformTable& outtable, const wchar_t* vsfile, const wchar_t* gsfile, const wchar_t* fsfile);
 	void FillStencilBuffer(const glm::vec3& lightpos, const glm::mat4& viewproj);
 	void RenderObjects(CUniformTable& table);
 

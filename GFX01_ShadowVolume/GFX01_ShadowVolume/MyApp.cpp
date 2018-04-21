@@ -157,10 +157,10 @@ bool CMyApp::Init()
 	glBindVertexArray(0);
 
 	// create programs
-	pointLightPO = AssembleProgram(pointLightTable, L"pointlight.vert", 0, L"pointlight.frag");
-	zOnlyPO = AssembleProgram(zOnlyTable, L"zonly.vert", 0, L"zonly.frag");
-	extrudePO = AssembleProgram(extrudeTable, L"extrude.vert", L"extrude.geom", L"extrude.frag");
-	tonemapPO = AssembleProgram(tonemapTable, L"screenquad.vert", 0, L"tonemap.frag");
+	pointLightPO = CShaderUtils::AssembleProgram(pointLightTable, L"pointlight.vert", 0, L"pointlight.frag");
+	zOnlyPO = CShaderUtils::AssembleProgram(zOnlyTable, L"zonly.vert", 0, L"zonly.frag");
+	extrudePO = CShaderUtils::AssembleProgram(extrudeTable, L"extrude.vert", L"extrude.geom", L"extrude.frag");
+	tonemapPO = CShaderUtils::AssembleProgram(tonemapTable, L"screenquad.vert", 0, L"tonemap.frag");
 
 	// create render targets (don't know size yet)
 	glGenTextures(1, &renderTarget0);
@@ -203,51 +203,6 @@ bool CMyApp::Init()
 	return true;
 }
 
-GLuint CMyApp::AssembleProgram(CUniformTable& outtable, const wchar_t* vsfile, const wchar_t* gsfile, const wchar_t* fsfile)
-{
-	GLuint vertexshader = CShaderUtils::FindAndCompileShader(GL_VERTEX_SHADER, vsfile);
-	GLuint geometryshader = 0;
-	GLuint fragmentshader = CShaderUtils::FindAndCompileShader(GL_FRAGMENT_SHADER, fsfile);
-
-	assert(vertexshader != 0);
-	assert(fragmentshader != 0);
-
-	if (gsfile) {
-		geometryshader = CShaderUtils::FindAndCompileShader(GL_GEOMETRY_SHADER, gsfile);
-		assert(geometryshader != 0);
-	}
-
-	GLuint program = glCreateProgram();
-
-	glAttachShader(program, vertexshader);
-	glAttachShader(program, fragmentshader);
-
-	if (geometryshader != 0)
-		glAttachShader(program, geometryshader);
-
-	glLinkProgram(program);
-
-	bool success = CShaderUtils::ValidateShaderProgram(program);
-	assert(success);
-
-	glBindFragDataLocation(program, 0, "my_FragColor0");
-	glLinkProgram(program);
-
-	// delete shader objects
-	glDetachShader(program, vertexshader);
-	glDetachShader(program, fragmentshader);
-
-	if (geometryshader != 0)
-		glDetachShader(program, geometryshader);
-
-	glDeleteShader(vertexshader);
-	glDeleteShader(geometryshader);
-	glDeleteShader(fragmentshader);
-
-	CShaderUtils::QueryUniformLocations(outtable, program);
-	return program;
-}
-
 void CMyApp::Clean()
 {
 	glDeleteFramebuffers(1, &framebuffer);
@@ -284,7 +239,6 @@ void CMyApp::FillStencilBuffer(const glm::vec3& lightpos, const glm::mat4& viewp
 	glm::mat4 world;
 
 	glEnable(GL_DEPTH_CLAMP);
-
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDisable(GL_CULL_FACE);
 
@@ -327,7 +281,6 @@ void CMyApp::FillStencilBuffer(const glm::vec3& lightpos, const glm::mat4& viewp
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_TRUE);
 	glDisable(GL_STENCIL_TEST);
-
 	glDisable(GL_DEPTH_CLAMP);
 }
 
@@ -388,12 +341,12 @@ void CMyApp::Render()
 
 	viewproj = proj * view;
 
-	// strong moving point light (experiment with curves on https://www.desmos.com/calculator)
+	// moving light
 	lightpos1.x = cosf(time) * 5;
 	lightpos1.y = 4.0f;
 	lightpos1.z = sinf(time) * 5;
 
-	// a weaker static point light so we don't look retarded...
+	// static light
 	lightpos2.x = -5;
 	lightpos2.y = 8;
 	lightpos2.z = 5;

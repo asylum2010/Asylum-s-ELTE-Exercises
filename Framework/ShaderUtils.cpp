@@ -77,6 +77,51 @@ GLuint CShaderUtils::FindAndCompileShader(GLenum type, const wchar_t* filename)
 	return shader;
 }
 
+GLuint CShaderUtils::AssembleProgram(CUniformTable& outtable, const wchar_t* vsfile, const wchar_t* gsfile, const wchar_t* fsfile)
+{
+	GLuint vertexshader = CShaderUtils::FindAndCompileShader(GL_VERTEX_SHADER, vsfile);
+	GLuint geometryshader = 0;
+	GLuint fragmentshader = CShaderUtils::FindAndCompileShader(GL_FRAGMENT_SHADER, fsfile);
+
+	assert(vertexshader != 0);
+	assert(fragmentshader != 0);
+
+	if (gsfile) {
+		geometryshader = CShaderUtils::FindAndCompileShader(GL_GEOMETRY_SHADER, gsfile);
+		assert(geometryshader != 0);
+	}
+
+	GLuint program = glCreateProgram();
+
+	glAttachShader(program, vertexshader);
+	glAttachShader(program, fragmentshader);
+
+	if (geometryshader != 0)
+		glAttachShader(program, geometryshader);
+
+	glLinkProgram(program);
+
+	bool success = CShaderUtils::ValidateShaderProgram(program);
+	assert(success);
+
+	glBindFragDataLocation(program, 0, "my_FragColor0");
+	glLinkProgram(program);
+
+	// delete shader objects
+	glDetachShader(program, vertexshader);
+	glDetachShader(program, fragmentshader);
+
+	if (geometryshader != 0)
+		glDetachShader(program, geometryshader);
+
+	glDeleteShader(vertexshader);
+	glDeleteShader(geometryshader);
+	glDeleteShader(fragmentshader);
+
+	CShaderUtils::QueryUniformLocations(outtable, program);
+	return program;
+}
+
 bool CShaderUtils::ValidateShaderProgram(GLuint program)
 {
 	GLint success = GL_FALSE;
