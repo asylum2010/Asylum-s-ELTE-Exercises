@@ -76,7 +76,7 @@ private:
 
 	GLuint			renderTarget0;	// RGBA16F
 	GLuint			depthTarget;	// depth-stencil surface
-	GLuint			shadowMap;		// R32F
+	GLuint			shadowMap;		// RG32F
 	GLuint			shadowDepth;	// lazy
 
 	GLuint			objectsVBO;		// objects vertex data

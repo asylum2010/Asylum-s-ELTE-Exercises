@@ -116,7 +116,7 @@ bool CMyApp::Init()
 	// create shadow map and frame buffer (want to write linear depth so we waste some memory)
 	glGenTextures(1, &shadowMap);
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0, GL_RED, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0, GL_RG, GL_FLOAT, NULL);
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
