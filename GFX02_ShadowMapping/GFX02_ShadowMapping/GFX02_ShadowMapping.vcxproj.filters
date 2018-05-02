@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MyApp.cpp" />
+    <ClCompile Include="..\..\Framework\ArcballCamera.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\GeometryUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\ManifoldUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\ShaderUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui_draw.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="T:\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp">
+      <Filter>Extern\imgui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MyApp.h" />
+    <ClInclude Include="..\..\Framework\ArcballCamera.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\GeometryUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\ManifoldUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\ShaderUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{ad46a487-02d9-40bf-a472-3c9a543d6e19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Extern">
+      <UniqueIdentifier>{ce984496-e99a-4f87-b184-f9248b003cca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Extern\imgui">
+      <UniqueIdentifier>{74e2a8fc-43d1-4da1-9743-ce537a2d817b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{3cc08238-e5cf-4d40-aee5-19d5dee7c39c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Media\Shaders\screenquad.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\tonemap.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\shadowmap.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\shadowmap.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\pointlight_pcf.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\pointlight_pcf.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\pbr_common.head">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\screenquad.frag">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

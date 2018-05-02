@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PBR03_PathTracing", "PBR03_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GFX01_ShadowVolume", "GFX01_ShadowVolume\GFX01_ShadowVolume\GFX01_ShadowVolume.vcxproj", "{40DDB7F7-3E9A-4175-8084-425C961AB149}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GFX02_ShadowMapping", "GFX02_ShadowMapping\GFX02_ShadowMapping\GFX02_ShadowMapping.vcxproj", "{385051F0-CFA3-4FB9-8BEA-95897EF7F22A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -33,6 +35,10 @@ Global
 		{40DDB7F7-3E9A-4175-8084-425C961AB149}.Debug|x64.Build.0 = Debug|x64
 		{40DDB7F7-3E9A-4175-8084-425C961AB149}.Release|x64.ActiveCfg = Release|x64
 		{40DDB7F7-3E9A-4175-8084-425C961AB149}.Release|x64.Build.0 = Release|x64
+		{385051F0-CFA3-4FB9-8BEA-95897EF7F22A}.Debug|x64.ActiveCfg = Debug|x64
+		{385051F0-CFA3-4FB9-8BEA-95897EF7F22A}.Debug|x64.Build.0 = Debug|x64
+		{385051F0-CFA3-4FB9-8BEA-95897EF7F22A}.Release|x64.ActiveCfg = Release|x64
+		{385051F0-CFA3-4FB9-8BEA-95897EF7F22A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

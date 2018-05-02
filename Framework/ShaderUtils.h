@@ -38,6 +38,13 @@ public:
 			glUniformMatrix4fv(it->second, count, transpose, value);
 	}
 
+	void SetVector2fv(key_type&& _Keyval, GLsizei count, const GLfloat* value) {
+		auto it = base_type::find(_Keyval);
+
+		if (it != base_type::end())
+			glUniform2fv(it->second, count, value);
+	}
+
 	void SetVector3fv(key_type&& _Keyval, GLsizei count, const GLfloat* value) {
 		auto it = base_type::find(_Keyval);
 

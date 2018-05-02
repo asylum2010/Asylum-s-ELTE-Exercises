@@ -4,6 +4,8 @@
 #include <cassert>
 #include <cstdio>
 #include <string>
+#include <locale>
+#include <codecvt>
 #include <algorithm>
 
 #ifdef _MSC_VER
@@ -27,18 +29,18 @@ GLuint CShaderUtils::FindAndCompileShader(GLenum type, const wchar_t* filename)
 #endif
 
 	// NOTE: defined in property sheet
-	std::wstring sourcefile(MY_MEDIA_DIR);
+	std::wstring shadersdir(MY_MEDIA_DIR);
 	FILE* infile = nullptr;
 
-	if (FALSE == PathResolve(&sourcefile[0], NULL, PRF_VERIFYEXISTS)) {
+	if (FALSE == PathResolve(&shadersdir[0], NULL, PRF_VERIFYEXISTS)) {
 		printf("[ShaderUtils] Media directory not found\n");
 		return 0;
 	}
 
-	sourcefile.resize(sourcefile.find_first_of(L'\0'));
-	sourcefile += L"\\Shaders\\";
-	sourcefile += filename;
-
+	shadersdir.resize(shadersdir.find_first_of(L'\0'));
+	shadersdir += L"\\Shaders\\";
+	
+	std::wstring sourcefile = shadersdir + filename;
 	_wfopen_s(&infile, sourcefile.c_str(), L"rb");
 
 	if (infile == nullptr) {
@@ -50,14 +52,51 @@ GLuint CShaderUtils::FindAndCompileShader(GLenum type, const wchar_t* filename)
 	long length = ftell(infile);
 	fseek(infile, 0, SEEK_SET);
 
-	char* data = new char[length + 1];
-	fread(data, 1, length, infile);
-	data[length] = 0;
+	std::string data(length, '\0');
 
+	fread(&data[0], 1, length, infile);
+	fclose(infile);
+
+	// copy included files (non-recursive!!!)
+	size_t pos = data.find("#include");
+
+	while (pos != std::string::npos) {
+		size_t start = data.find('\"', pos) + 1;
+		size_t end = data.find('\"', start);
+
+		std::string incfile(data.substr(start, end - start));
+
+		// convert to wchar
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t> > converter;
+		std::wstring wincfile = shadersdir + converter.from_bytes(incfile);
+		std::string incdata;
+
+		_wfopen_s(&infile, wincfile.c_str(), L"rb");
+
+		if (infile == nullptr) {
+			printf("[ShaderUtils] Could not open included file '%S'\n", wincfile.c_str());
+			return 0;
+		}
+
+		fseek(infile, 0, SEEK_END);
+		length = ftell(infile);
+		fseek(infile, 0, SEEK_SET);
+
+		incdata.resize(length, '\0');
+
+		fread(&incdata[0], 1, length, infile);
+		fclose(infile);
+
+		data.replace(pos, end - pos + 1, incdata);
+		pos = data.find("#include", end);
+	}
+
+	// create shader
 	GLuint shader = glCreateShader(type);
 	GLint success = GL_FALSE;
+	const GLchar* sources[] = { data.c_str() };
 
-	glShaderSource(shader, 1, &data, NULL);
+	glShaderSource(shader, 1, sources, NULL);
 	glCompileShader(shader);
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
@@ -70,9 +109,6 @@ GLuint CShaderUtils::FindAndCompileShader(GLenum type, const wchar_t* filename)
 		printf("[ShaderUtils] Shader compilation failed:\n%s\n", infolog);
 		return 0;
 	}
-
-	delete[] data;
-	fclose(infile);
 
 	return shader;
 }
