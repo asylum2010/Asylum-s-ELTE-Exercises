@@ -29,6 +29,7 @@ CMyApp::CMyApp(void)
 	depthTarget			= 0;
 	shadowMap			= 0;
 	shadowDepth			= 0;
+	blurredShadowMap	= 0;
 
 	objectsVBO			= 0;
 	objectsIBO			= 0;
@@ -38,6 +39,7 @@ CMyApp::CMyApp(void)
 
 	shadowMapPO			= 0;
 	pointLightPO		= 0;
+	blurPO				= 0;
 	tonemapPO			= 0;
 	debugPO				= 0;
 }
@@ -109,7 +111,8 @@ bool CMyApp::Init()
 
 	// create programs
 	shadowMapPO = CShaderUtils::AssembleProgram(shadowMapTable, L"shadowmap.vert", 0, L"shadowmap.frag");
-	pointLightPO = CShaderUtils::AssembleProgram(pointLightTable, L"pointlight_pcf.vert", 0, L"pointlight_pcf.frag");
+	pointLightPO = CShaderUtils::AssembleProgram(pointLightTable, L"pointlight_shadow.vert", 0, L"pointlight_shadow.frag");
+	blurPO = CShaderUtils::AssembleProgram(blurTable, L"screenquad.vert", 0, L"boxblur.frag");
 	tonemapPO = CShaderUtils::AssembleProgram(tonemapTable, L"screenquad.vert", 0, L"tonemap.frag");
 	debugPO = CShaderUtils::AssembleProgram(debugTable, L"screenquad.vert", 0, L"screenquad.frag");
 
@@ -125,6 +128,15 @@ bool CMyApp::Init()
 
 	float white[] = { 1, 1, 1, 1 };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, white);
+
+	glGenTextures(1, &blurredShadowMap);
+	glBindTexture(GL_TEXTURE_2D, blurredShadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0, GL_RG, GL_FLOAT, NULL);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// same as a texture with private storage
 	glGenRenderbuffers(1, &shadowDepth);
@@ -193,9 +205,11 @@ void CMyApp::Clean()
 	glDeleteTextures(1, &renderTarget0);
 	glDeleteTextures(1, &depthTarget);
 	glDeleteTextures(1, &shadowMap);
+	glDeleteTextures(1, &blurredShadowMap);
 
 	glDeleteProgram(shadowMapPO);
 	glDeleteProgram(pointLightPO);
+	glDeleteProgram(blurPO);
 	glDeleteProgram(tonemapPO);
 	glDeleteProgram(debugPO);
 
@@ -216,18 +230,46 @@ void CMyApp::Update()
 	last_time = SDL_GetTicks();
 }
 
+void CMyApp::BlurShadowMap()
+{
+	glm::vec2 texelsize(1.0f / SHADOWMAP_SIZE, 1.0f / SHADOWMAP_SIZE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFramebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blurredShadowMap, 0);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	{
+		// setup graphics pipeline
+		glUseProgram(blurPO);
+		glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
+		glDisable(GL_DEPTH_TEST);
+
+		// update uniforms
+		blurTable.SetInt("sampler0", 0);
+		blurTable.SetVector2fv("texelSize", 1, &texelsize.x);
+
+		glBindTexture(GL_TEXTURE_2D, shadowMap);
+
+		// draw screen quad
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void CMyApp::RenderShadowMap(ShadowProjData& outdata, const glm::vec3& lightpos)
 {
 	// ok, so we are in a little trouble here because point lights cast shadow in every direction...
 	// ...for which we need a cubemap...
 	// for now let's be lazy and choose (0, 0, 0) as lookAt point
 
-	glm::vec2 clipplanes(0.2f, 20.0f); //
+	glm::vec2 clipplanes(0.2f, 20.0f); // TODO: fit to scene bounding box
 
 	glm::mat4 view = glm::lookAtRH(lightpos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 proj = glm::perspectiveFovRH(glm::half_pi<float>(), (float)SHADOWMAP_SIZE, (float)SHADOWMAP_SIZE, clipplanes.x, clipplanes.y);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFramebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadowMap, 0);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	{
@@ -239,7 +281,7 @@ void CMyApp::RenderShadowMap(ShadowProjData& outdata, const glm::vec3& lightpos)
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		glCullFace(GL_FRONT);
+		//glCullFace(GL_FRONT);
 
 		shadowMapTable.SetMatrix4fv("matView", 1, GL_FALSE, &view[0][0]);
 		shadowMapTable.SetMatrix4fv("matProj", 1, GL_FALSE, &proj[0][0]);
@@ -254,7 +296,7 @@ void CMyApp::RenderShadowMap(ShadowProjData& outdata, const glm::vec3& lightpos)
 	outdata.lightClip = clipplanes;
 
 	// reset
-	glCullFace(GL_BACK);
+	//glCullFace(GL_BACK);
 }
 
 void CMyApp::RenderObjects(CUniformTable& table)
@@ -262,7 +304,7 @@ void CMyApp::RenderObjects(CUniformTable& table)
 	glm::mat4 world, worldinv;
 
 	// object 1
-	world = glm::translate(glm::vec3(0, -1, 0)) * glm::scale(glm::vec3(5.0f, 0.2f, 5.0f));
+	world = glm::translate(glm::vec3(0, -1, 0)) * glm::scale(glm::vec3(15.0f, 0.2f, 15.0f));
 	worldinv = glm::inverse(world);
 
 	table.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
@@ -327,7 +369,9 @@ void CMyApp::Render()
 
 	// render pass 1 (shadow map for first light)
 	ShadowProjData shadowdata;
+
 	RenderShadowMap(shadowdata, lightpos1);
+	BlurShadowMap();
 
 	// render pass 2 (first light)
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -353,7 +397,8 @@ void CMyApp::Render()
 		pointLightTable.SetVector2fv("shadowTexelSize", 1, &shadowtexelsize.x);
 		pointLightTable.SetInt("shadowMap", 0);
 
-		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		//glBindTexture(GL_TEXTURE_2D, shadowMap);
+		glBindTexture(GL_TEXTURE_2D, blurredShadowMap);
 
 		// render objects
 		pointLightTable.SetVector3fv("lightPos", 1, &lightpos1.x);
@@ -364,6 +409,7 @@ void CMyApp::Render()
 
 	// render pass 3 (shadow map for second light)
 	RenderShadowMap(shadowdata, lightpos2);
+	BlurShadowMap();
 
 	// render pass 4 (second light)
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -389,7 +435,8 @@ void CMyApp::Render()
 		pointLightTable.SetMatrix4fv("matLightProj", 1, GL_FALSE, &shadowdata.lightProj[0][0]);
 		pointLightTable.SetVector2fv("lightClipPlanes", 1, &shadowdata.lightClip.x);
 
-		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		//glBindTexture(GL_TEXTURE_2D, shadowMap);
+		glBindTexture(GL_TEXTURE_2D, blurredShadowMap);
 
 		// render objects
 		pointLightTable.SetVector3fv("lightPos", 1, &lightpos2.x);
@@ -431,6 +478,7 @@ void CMyApp::Render()
 		// update uniforms
 		debugTable.SetInt("sampler0", 0);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		//glBindTexture(GL_TEXTURE_2D, blurredShadowMap);
 
 		// draw screen quad
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

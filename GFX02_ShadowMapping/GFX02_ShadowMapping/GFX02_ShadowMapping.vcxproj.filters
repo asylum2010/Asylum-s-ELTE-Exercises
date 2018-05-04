@@ -67,16 +67,19 @@
     <None Include="..\..\Media\Shaders\shadowmap.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\Media\Shaders\pointlight_pcf.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\Media\Shaders\pointlight_pcf.vert">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\..\Media\Shaders\pbr_common.head">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\Media\Shaders\screenquad.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\boxblur.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\pointlight_shadow.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\pointlight_shadow.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

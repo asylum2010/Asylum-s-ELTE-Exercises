@@ -50,6 +50,7 @@ private:
 		glm::vec2 lightClip;
 	};
 
+	void BlurShadowMap();
 	void RenderShadowMap(ShadowProjData& outdata, const glm::vec3& lightpos);
 	void RenderObjects(CUniformTable& table);
 
@@ -67,6 +68,7 @@ private:
 	// locations of active uniforms
 	CUniformTable	shadowMapTable;
 	CUniformTable	pointLightTable;
+	CUniformTable	blurTable;
 	CUniformTable	tonemapTable;
 	CUniformTable	debugTable;
 
@@ -78,6 +80,7 @@ private:
 	GLuint			depthTarget;	// depth-stencil surface
 	GLuint			shadowMap;		// RG32F
 	GLuint			shadowDepth;	// lazy
+	GLuint			blurredShadowMap;
 
 	GLuint			objectsVBO;		// objects vertex data
 	GLuint			objectsIBO;		// objects index data
@@ -87,6 +90,7 @@ private:
 
 	GLuint			shadowMapPO;	// for shadow map
 	GLuint			pointLightPO;	// for objects
+	GLuint			blurPO;			// for blur
 	GLuint			tonemapPO;		// for tone mapping
 	GLuint			debugPO;		// for debugging
 };
