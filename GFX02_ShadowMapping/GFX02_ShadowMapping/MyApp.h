@@ -20,7 +20,7 @@
 // Tasks:
 // (1) modify 'shadowmap.frag' so that it outputs linear depth
 // (2) modify 'pointlight_shadow.frag' so that it implements the basic shadow test
-// (3) implement Chabychev's inequality for variance shadows
+// (3) implement Chebychev's inequality for variance shadows
 
 // (+) implement irregular PCF using the provided 'pcfnoise.bmp' texture
 
