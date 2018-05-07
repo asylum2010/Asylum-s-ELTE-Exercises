@@ -187,7 +187,7 @@ bool CMyApp::Init()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// setup camera
-	camera.SetClipPlanes(0.1f, 30.0f);
+	camera.SetClipPlanes(0.1f, 50.0f);
 	camera.SetFov(glm::radians(60.0f));
 	camera.SetDistance(8);
 	camera.SetPosition(glm::vec3(0, 0, 0));
@@ -263,7 +263,7 @@ void CMyApp::RenderShadowMap(ShadowProjData& outdata, const glm::vec3& lightpos)
 	// ...for which we need a cubemap...
 	// for now let's be lazy and choose (0, 0, 0) as lookAt point
 
-	glm::vec2 clipplanes(0.2f, 20.0f); // TODO: fit to scene bounding box
+	glm::vec2 clipplanes(0.2f, 30.0f); // TODO: fit to scene bounding box
 
 	glm::mat4 view = glm::lookAtRH(lightpos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 proj = glm::perspectiveFovRH(glm::half_pi<float>(), (float)SHADOWMAP_SIZE, (float)SHADOWMAP_SIZE, clipplanes.x, clipplanes.y);
@@ -448,7 +448,7 @@ void CMyApp::Render()
 	// must enable it for glClear (HUGE difference with Metal/Vulkan)
 	glDepthMask(GL_TRUE);
 
-	// render pass 4 (tone mapping)
+	// render pass 5 (tone mapping)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	{
@@ -468,7 +468,7 @@ void CMyApp::Render()
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
-	// render pass 5 (debug)
+	// render pass 6 (debug)
 	if (debugMode) {
 		// setup graphics pipeline
 		glUseProgram(debugPO);
