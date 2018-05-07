@@ -218,6 +218,8 @@ void CMyApp::Clean()
 
 	glDeleteBuffers(1, &objectsVBO);
 	glDeleteBuffers(1, &objectsIBO);
+
+	CTextureUtils::Shutdown();
 }
 
 void CMyApp::Update()

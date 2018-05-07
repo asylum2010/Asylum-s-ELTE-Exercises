@@ -10,6 +10,7 @@
 #ifdef _MSC_VER
 #	include <Windows.h>
 #	include <Shlobj.h>
+#	include <gdiplus.h>
 #endif
 
 GLint map_Format_Internal[] = {
@@ -75,6 +76,27 @@ static uint32_t NextPow2(uint32_t x)
 
 	return ++x;
 }
+
+#ifdef _MSC_VER
+ULONG_PTR gdiPlusToken = 0;
+
+static Gdiplus::Bitmap* Win32LoadPicture(const std::wstring& file)
+{
+	if (gdiPlusToken == 0) {
+		Gdiplus::GdiplusStartupInput gdiplustartup;
+		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplustartup, NULL);
+	}
+
+	Gdiplus::Bitmap* bitmap = Gdiplus::Bitmap::FromFile(file.c_str(), FALSE);
+
+	if (bitmap->GetLastStatus() != Gdiplus::Ok) {
+		delete bitmap;
+		bitmap = 0;
+	}
+
+	return bitmap;
+}
+#endif
 
 CTextureUtils::CTextureUtils()
 {
@@ -207,8 +229,64 @@ GLuint CTextureUtils::FindAndLoadTexture(const wchar_t* filename, bool srgb)
 		if (info.Data)
 			free(info.Data);
 	} else {
-		// TODO:
-		assert(false);
+#ifdef _MSC_VER
+		Gdiplus::Bitmap* bitmap = Win32LoadPicture(texturefile);
+
+		if (bitmap != nullptr) { 
+			if (bitmap->GetLastStatus() == Gdiplus::Ok) {
+				Gdiplus::BitmapData data;
+				uint8_t* tmpbuff;
+
+				bitmap->LockBits(0, Gdiplus::ImageLockModeRead, PixelFormat32bppARGB, &data);
+
+				tmpbuff = new uint8_t[data.Width * data.Height * 4];
+				memcpy(tmpbuff, data.Scan0, data.Width * data.Height * 4);
+
+				for (UINT i = 0; i < data.Height; ++i) {
+					// swap red and blue
+					for (UINT j = 0; j < data.Width; ++j) {
+						UINT index = (i * data.Width + j) * 4;
+						std::swap<uint8_t>(tmpbuff[index + 0], tmpbuff[index + 2]);
+					}
+				}
+
+				glGenTextures(1, &texid);
+				glBindTexture(GL_TEXTURE_2D, texid);
+
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+				if (srgb)
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, data.Width, data.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmpbuff);
+				else
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.Width, data.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmpbuff);
+
+				glGenerateMipmap(GL_TEXTURE_2D);
+
+				GLenum err = glGetError();
+
+				if (err != GL_NO_ERROR) {
+					glDeleteTextures(1, &texid);
+					texid = 0;
+
+					printf("[TextureUtils] OpenGL error '%S'\n", texturefile.c_str());
+				}
+
+				bitmap->UnlockBits(&data);
+				delete[] tmpbuff;
+			}
+
+			delete bitmap;
+		} else {
+			printf("[TextureUtils] Could not load texture '%S'\n", texturefile.c_str());
+		}
+#else
+	// TODO:
+	assert(false);
+#endif
+
 	}
 
 	GLenum err = glGetError();
@@ -221,4 +299,12 @@ GLuint CTextureUtils::FindAndLoadTexture(const wchar_t* filename, bool srgb)
 	}
 
 	return texid;
+}
+
+void CTextureUtils::Shutdown()
+{
+#ifdef _MSC_VER
+	if (gdiPlusToken != 0)
+		Gdiplus::GdiplusShutdown(gdiPlusToken);
+#endif
 }

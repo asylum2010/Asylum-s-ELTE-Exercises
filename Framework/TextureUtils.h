@@ -36,6 +36,7 @@ private:
 
 public:
 	static GLuint FindAndLoadTexture(const wchar_t* filename, bool srgb);
+	static void Shutdown();
 };
 
 #endif

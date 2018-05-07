@@ -24,6 +24,12 @@
     <ClCompile Include="T:\OGLPack\include\imgui\imgui_impl_sdl_gl3.cpp">
       <Filter>Extern\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Framework\TextureUtils.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Framework\dds.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyApp.h" />
@@ -37,6 +43,12 @@
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Framework\ShaderUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\TextureUtils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Framework\dds.h">
       <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>

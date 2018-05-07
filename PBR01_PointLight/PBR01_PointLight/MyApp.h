@@ -20,7 +20,7 @@
 // (2) add the specular term using the Cook-Torrance microfacet model (GGX, Shlick, Smith-Shlick are ok)
 
 // (+) optimize the Cook-Torrance calculation (the Smith-Shlick function drops out its denominator)
-// (+) optimize everything else that you can
+// (+) optimize everything else you can
 
 class CMyApp
 {

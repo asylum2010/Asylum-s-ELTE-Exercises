@@ -84,9 +84,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Framework\ArcballCamera.cpp" />
+    <ClCompile Include="..\..\Framework\dds.cpp" />
     <ClCompile Include="..\..\Framework\GeometryUtils.cpp" />
     <ClCompile Include="..\..\Framework\ManifoldUtils.cpp" />
     <ClCompile Include="..\..\Framework\ShaderUtils.cpp" />
+    <ClCompile Include="..\..\Framework\TextureUtils.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyApp.cpp" />
     <ClCompile Include="T:\OGLPack\include\imgui\imgui.cpp" />
@@ -95,9 +97,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\ArcballCamera.h" />
+    <ClInclude Include="..\..\Framework\dds.h" />
     <ClInclude Include="..\..\Framework\GeometryUtils.h" />
     <ClInclude Include="..\..\Framework\ManifoldUtils.h" />
     <ClInclude Include="..\..\Framework\ShaderUtils.h" />
+    <ClInclude Include="..\..\Framework\TextureUtils.h" />
     <ClInclude Include="MyApp.h" />
   </ItemGroup>
   <ItemGroup>
