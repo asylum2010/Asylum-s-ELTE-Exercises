@@ -18,11 +18,10 @@
 #include "../../Framework/ArcballCamera.h"
 
 // Tasks:
-// (1) modify 'shadowmap.frag' so that it outputs linear depth
-// (2) modify 'pointlight_shadow.frag' so that it implements the basic shadow test
-// (3) implement Chebychev's inequality for variance shadows
+// (1)
+// (2)
 
-// (+) implement irregular PCF using the provided 'pcfnoise.bmp' texture
+// (+)
 
 class CMyApp
 {
@@ -51,8 +50,7 @@ private:
 		glm::vec2 lightClip;
 	};
 
-	void BlurShadowMap();
-	void RenderShadowMap(ShadowProjData& outdata, const glm::vec3& lightpos);
+	void CreateAttachment(GLuint& target, GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, bool reallocate);
 	void RenderObjects(CUniformTable& table);
 
 	int				windowWidth;
@@ -65,21 +63,22 @@ private:
 	CArcballCamera	camera;
 
 	// locations of active uniforms
-	CUniformTable	shadowMapTable;
-	CUniformTable	pointLightTable;
-	CUniformTable	blurTable;
+	CUniformTable	gBufferTable;
 	CUniformTable	tonemapTable;
 	CUniformTable	debugTable;
 
 	// GL objects
 	GLuint			framebuffer;	// to render in HDR
-	GLuint			shadowFramebuffer;
+	GLuint			gBuffer;
+	GLuint			accumBuffer;	// light accumulation targets (HDR)
 
-	GLuint			renderTarget0;	// RGBA16F
+	GLuint			gBufferNormals;	// RGBA8 (normal, roughness)
+	GLuint			gBufferDepth;	// R32F
+	GLuint			accumDiffuse;	// RGBA16F (diffuse illuminance)
+	GLuint			accumSpecular;	// RGBA16F (specular illuminance)
+
+	GLuint			renderTarget0;	// RGBA16F (combined output)
 	GLuint			depthTarget;	// depth-stencil surface
-	GLuint			shadowMap;		// RG32F
-	GLuint			shadowDepth;	// lazy
-	GLuint			blurredShadowMap;
 
 	GLuint			objectsVBO;		// objects vertex data
 	GLuint			objectsIBO;		// objects index data
@@ -87,9 +86,7 @@ private:
 
 	GLuint			screenQuadVAO;	// empty, but needed
 
-	GLuint			shadowMapPO;	// for shadow map
-	GLuint			pointLightPO;	// for objects
-	GLuint			blurPO;			// for blur
+	GLuint			gBufferPO;		// to render g-buffer
 	GLuint			tonemapPO;		// for tone mapping
 	GLuint			debugPO;		// for debugging
 };

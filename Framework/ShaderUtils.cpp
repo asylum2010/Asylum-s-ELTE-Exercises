@@ -141,6 +141,9 @@ GLuint CShaderUtils::AssembleProgram(CUniformTable& outtable, const wchar_t* vsf
 	assert(success);
 
 	glBindFragDataLocation(program, 0, "my_FragColor0");
+	glBindFragDataLocation(program, 1, "my_FragColor1");
+	glBindFragDataLocation(program, 2, "my_FragColor2");
+	glBindFragDataLocation(program, 3, "my_FragColor3");
 	glLinkProgram(program);
 
 	// delete shader objects
