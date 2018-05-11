@@ -17,7 +17,7 @@ vec3 F_Schlick(vec3 f0, float u)
 	return f0 + (vec3(1.0) - f0) * pow(1.0 - u + EPSILON, 5.0);
 }
 
-float D_GGX(float ndoth)
+float D_GGX(float ndoth, float roughness)
 {
 	// Disney's suggestion
 	float a = roughness * roughness;
@@ -29,7 +29,7 @@ float D_GGX(float ndoth)
 	return a2 / (PI * d * d + EPSILON);
 }
 
-float G_Smith_Schlick(float ndotl, float ndotv)
+float G_Smith_Schlick(float ndotl, float ndotv, float roughness)
 {
 	// Disney's suggestion
 	float a = roughness + 1.0;
@@ -57,9 +57,9 @@ vec3 CalculateLuminance_Point(vec3 n, vec3 v, vec3 l, float dist2)
 	vec4 f_lambert = baseColor * ONE_OVER_PI;
 
 	// BRDF specular term (Cook-Torrance)
-	float D = D_GGX(ndoth);
+	float D = D_GGX(ndoth, roughness);
 	vec3 F = F_Schlick(vec3(0.04), ldoth);
-	float G = G_Smith_Schlick(ndotl, ndotv);
+	float G = G_Smith_Schlick(ndotl, ndotv, roughness);
 
 	vec3 f_cooktorrance = (D * F * G) / (4.0 * ndotv * ndotl + EPSILON);
 	vec3 brdf = f_lambert.xyz + f_cooktorrance;

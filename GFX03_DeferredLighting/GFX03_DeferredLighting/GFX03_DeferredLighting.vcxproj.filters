@@ -85,5 +85,11 @@
     <None Include="..\..\Media\Shaders\gbuffer.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\..\Media\Shaders\lightaccum.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Media\Shaders\forwardcombine.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

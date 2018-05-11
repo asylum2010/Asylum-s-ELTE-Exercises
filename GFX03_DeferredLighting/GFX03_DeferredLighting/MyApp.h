@@ -64,6 +64,8 @@ private:
 
 	// locations of active uniforms
 	CUniformTable	gBufferTable;
+	CUniformTable	accumTable;
+	CUniformTable	combineTable;
 	CUniformTable	tonemapTable;
 	CUniformTable	debugTable;
 
@@ -72,8 +74,9 @@ private:
 	GLuint			gBuffer;
 	GLuint			accumBuffer;	// light accumulation targets (HDR)
 
-	GLuint			gBufferNormals;	// RGBA8 (normal, roughness)
-	GLuint			gBufferDepth;	// R32F
+	GLuint			gBufferNormals;	// RGBA8 (normal)
+	GLuint			gBufferDepth;	// R32F (depth in [0, 1])
+	GLuint			gBufferBRDF;	// RGBA16F (F0, roughness)
 	GLuint			accumDiffuse;	// RGBA16F (diffuse illuminance)
 	GLuint			accumSpecular;	// RGBA16F (specular illuminance)
 
@@ -87,6 +90,8 @@ private:
 	GLuint			screenQuadVAO;	// empty, but needed
 
 	GLuint			gBufferPO;		// to render g-buffer
+	GLuint			accumPO;		// to accumulate illuminance
+	GLuint			combinePO;		// to combine materials with illuminances
 	GLuint			tonemapPO;		// for tone mapping
 	GLuint			debugPO;		// for debugging
 };

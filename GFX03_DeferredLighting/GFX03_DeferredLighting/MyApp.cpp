@@ -12,6 +12,10 @@ glm::vec4 basecolor1 = CShaderUtils::sRGBToLinear(0, 240, 240);
 glm::vec4 basecolor2 = CShaderUtils::sRGBToLinear(255, 106, 0);
 glm::vec4 basecolor3 = CShaderUtils::sRGBToLinear(0, 255, 0);
 
+glm::vec3 lightcolor1(1.0, 0.0, 0.0);
+glm::vec3 lightcolor2(0.0, 1.0, 0.0);
+glm::vec3 lightcolor3(0.0, 0.0, 1.0);
+
 CMyApp::CMyApp(void)
 {
 	windowWidth			= 0;
@@ -26,6 +30,7 @@ CMyApp::CMyApp(void)
 
 	gBufferNormals		= 0;
 	gBufferDepth		= 0;
+	gBufferBRDF			= 0;
 	accumDiffuse		= 0;
 	accumSpecular		= 0;
 
@@ -39,6 +44,8 @@ CMyApp::CMyApp(void)
 	screenQuadVAO		= 0;
 
 	gBufferPO			= 0;
+	accumPO				= 0;
+	combinePO			= 0;
 	tonemapPO			= 0;
 	debugPO				= 0;
 }
@@ -110,18 +117,22 @@ bool CMyApp::Init()
 
 	// create programs
 	gBufferPO = CShaderUtils::AssembleProgram(gBufferTable, L"gbuffer.vert", 0, L"gbuffer.frag");
+	accumPO = CShaderUtils::AssembleProgram(accumTable, L"screenquad.vert", 0, L"lightaccum.frag");
+	combinePO = CShaderUtils::AssembleProgram(combineTable, L"gbuffer.vert", 0, L"forwardcombine.frag");
 	tonemapPO = CShaderUtils::AssembleProgram(tonemapTable, L"screenquad.vert", 0, L"tonemap.frag");
 	debugPO = CShaderUtils::AssembleProgram(debugTable, L"screenquad.vert", 0, L"screenquad.frag");
 
 	// create g-buffer FBO (don't know size yet)
 	CreateAttachment(gBufferNormals, GL_RGBA8, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, false);
 	CreateAttachment(gBufferDepth, GL_R32F, 256, 256, GL_RED, GL_FLOAT, false);
+	CreateAttachment(gBufferBRDF, GL_RGBA16F, 256, 256, GL_RGBA, GL_HALF_FLOAT, false);
 
 	glGenFramebuffers(1, &gBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	{
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gBufferNormals, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gBufferDepth, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gBufferBRDF, 0);
 
 		// NOTE: depth will be attached later
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -130,6 +141,20 @@ bool CMyApp::Init()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// create accumulation FBO (don't know size yet)
+	CreateAttachment(accumDiffuse, GL_RGBA16F, 256, 256, GL_RGBA, GL_HALF_FLOAT, false);
+	CreateAttachment(accumSpecular, GL_RGBA16F, 256, 256, GL_RGBA, GL_HALF_FLOAT, false);
+
+	glGenFramebuffers(1, &accumBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, accumBuffer);
+	{
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumDiffuse, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, accumSpecular, 0);
+
+		// NOTE: no need for depth attachment
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		assert(status == GL_FRAMEBUFFER_COMPLETE);
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// create combined output FBO (don't know size yet)
 	CreateAttachment(renderTarget0, GL_RGBA16F, 256, 256, GL_RGBA, GL_HALF_FLOAT, false);
@@ -139,8 +164,8 @@ bool CMyApp::Init()
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	{
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTarget0, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthTarget, 0);
 
+		// NOTE: depth will be attached later
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		assert(status == GL_FRAMEBUFFER_COMPLETE);
 	}
@@ -184,6 +209,7 @@ void CMyApp::Clean()
 
 	glDeleteTextures(1, &gBufferNormals);
 	glDeleteTextures(1, &gBufferDepth);
+	glDeleteTextures(1, &gBufferBRDF);
 	glDeleteTextures(1, &accumDiffuse);
 	glDeleteTextures(1, &accumSpecular);
 
@@ -191,6 +217,8 @@ void CMyApp::Clean()
 	glDeleteTextures(1, &depthTarget);
 
 	glDeleteProgram(gBufferPO);
+	glDeleteProgram(accumPO);
+	glDeleteProgram(combinePO);
 	glDeleteProgram(tonemapPO);
 	glDeleteProgram(debugPO);
 
@@ -224,7 +252,7 @@ void CMyApp::RenderObjects(CUniformTable& table)
 	table.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
 	table.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
 	table.SetVector4fv("baseColor", 1, &basecolor1.x);
-	table.SetFloat("roughness", 0.45f);
+	table.SetFloat("roughness", 0.15f); //0.45f);
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL);
 
@@ -235,7 +263,7 @@ void CMyApp::RenderObjects(CUniformTable& table)
 	table.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
 	table.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
 	table.SetVector4fv("baseColor", 1, &basecolor2.x);
-	table.SetFloat("roughness", 0.35f);
+	table.SetFloat("roughness", 0.15f); //0.35f);
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL);
 
@@ -256,11 +284,11 @@ void CMyApp::Render()
 	assert(windowWidth > 0);
 
 	glm::vec3 eyepos;
-	glm::vec3 lightpos1, lightpos2;
+	glm::vec3 lightpos1, lightpos2, lightpos3;
 
 	glm::mat4 world, view, proj;
 	glm::mat4 worldinv;
-	glm::mat4 viewproj;
+	glm::mat4 viewproj, viewprojinv;
 
 	float time = SDL_GetTicks() / 1000.0f;
 
@@ -269,22 +297,31 @@ void CMyApp::Render()
 	camera.GetProjectionMatrix(proj);
 
 	viewproj = proj * view;
+	viewprojinv = glm::inverse(viewproj);
 
-	// moving light
 	lightpos1.x = cosf(time) * 5;
 	lightpos1.y = 4.0f;
 	lightpos1.z = sinf(time) * 5;
 
-	// static light
-	lightpos2.x = -5;
-	lightpos2.y = 8;
-	lightpos2.z = 5;
+	lightpos2.x = cosf(time) * 7;
+	lightpos2.y = 4.0f;
+	lightpos2.z = sinf(time) * cosf(time) * 7;
+
+	lightpos3.x = sinf(2 * time) * 4;
+	lightpos3.y = 4.0f;
+	lightpos3.z = cosf(2 * time) * 4;
 
 	// render pass 1 (fill g-buffer)
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthTarget, 0);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	
+	float black[] = { 0, 0, 0, 0 };
+	float white[] = { 1, 1, 1, 1 };
+
+	glClearBufferfv(GL_COLOR, 0, black);
+	glClearBufferfv(GL_COLOR, 1, white);
+	glClearBufferfv(GL_COLOR, 2, black);
+	glClearBufferfv(GL_DEPTH, 0, white);
 	{
 		// setup graphics pipeline
 		glUseProgram(gBufferPO);
@@ -294,6 +331,10 @@ void CMyApp::Render()
 		glViewport(0, 0, windowWidth, windowHeight);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+		glDisable(GL_BLEND);
+
+		GLuint buffs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+		glDrawBuffers(3, buffs);
 
 		// update global uniforms
 		gBufferTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
@@ -304,15 +345,90 @@ void CMyApp::Render()
 
 	// render pass 2 (light accumulation)
 	glBindFramebuffer(GL_FRAMEBUFFER, accumBuffer);
+	glClearBufferfv(GL_COLOR, 0, black);
+	glClearBufferfv(GL_COLOR, 1, black);
 	{
-		// ...
+		// setup graphics pipeline
+		glUseProgram(accumPO);
+		glBindVertexArray(screenQuadVAO);
+		glViewport(0, 0, windowWidth, windowHeight);
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_ADD);
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		GLuint buffs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, buffs);
+
+		// update global uniforms
+		accumTable.SetMatrix4fv("matViewProjInv", 1, GL_FALSE, &viewprojinv[0][0]);
+		accumTable.SetVector3fv("eyePos", 1, &eyepos.x);
+		accumTable.SetInt("gBufferNormals", 0);
+		accumTable.SetInt("gBufferDepth", 1);
+		accumTable.SetInt("gBufferBRDF", 2);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, gBufferNormals);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, gBufferDepth);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gBufferBRDF);
+
+		// render lights (TODO: scissor test)
+		accumTable.SetVector3fv("lightPos", 1, &lightpos1.x);
+		accumTable.SetVector3fv("lightColor", 1, &lightcolor1.x);
+		accumTable.SetFloat("luminousFlux", 2500);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		accumTable.SetVector3fv("lightPos", 1, &lightpos2.x);
+		accumTable.SetVector3fv("lightColor", 1, &lightcolor2.x);
+		accumTable.SetFloat("luminousFlux", 2500);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		accumTable.SetVector3fv("lightPos", 1, &lightpos3.x);
+		accumTable.SetVector3fv("lightColor", 1, &lightcolor3.x);
+		accumTable.SetFloat("luminousFlux", 2500);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
 	// render pass 3 (material pass)
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthTarget, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
 	{
-		// ...
+		// setup graphics pipeline
+		glUseProgram(combinePO);
+		glBindVertexArray(objectsVAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objectsIBO);
+
+		glViewport(0, 0, windowWidth, windowHeight);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		glDepthMask(GL_FALSE);
+		glDisable(GL_BLEND);
+
+		glDrawBuffer(GL_BACK);
+
+		// update global uniforms
+		combineTable.SetMatrix4fv("matViewProj", 1, GL_FALSE, &viewproj[0][0]);
+		combineTable.SetInt("accumDiffuse", 0);
+		combineTable.SetInt("accumSpecular", 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, accumDiffuse);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, accumSpecular);
+
+		// render
+		RenderObjects(combineTable);
 	}
 
 	// must enable it for glClear (HUGE difference with Metal/Vulkan)
@@ -332,6 +448,8 @@ void CMyApp::Render()
 
 		// update uniforms
 		tonemapTable.SetInt("sampler0", 0);
+
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, renderTarget0);
 
 		// draw screen quad
@@ -346,13 +464,15 @@ void CMyApp::Render()
 		// setup graphics pipeline
 		glUseProgram(debugPO);
 		glBindVertexArray(screenQuadVAO);
-		glViewport(0, 0, width, height);
 
-		// update uniforms
 		debugTable.SetInt("sampler0", 0);
-		glBindTexture(GL_TEXTURE_2D, gBufferNormals);
 
-		// draw screen quad
+		glViewport(0, 0, width, height);
+		glBindTexture(GL_TEXTURE_2D, accumDiffuse);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glViewport(width, 0, width, height);
+		glBindTexture(GL_TEXTURE_2D, accumSpecular);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 }
@@ -404,6 +524,10 @@ void CMyApp::Resize(int newwidth, int newheight)
 	// reallocate render target storages
 	CreateAttachment(gBufferNormals, GL_RGBA8, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, true);
 	CreateAttachment(gBufferDepth, GL_R32F, windowWidth, windowHeight, GL_RED, GL_FLOAT, true);
+	CreateAttachment(gBufferBRDF, GL_RGBA16F, windowWidth, windowHeight, GL_RGBA, GL_HALF_FLOAT, true);
+
+	CreateAttachment(accumDiffuse, GL_RGBA16F, windowWidth, windowHeight, GL_RGBA, GL_HALF_FLOAT, true);
+	CreateAttachment(accumSpecular, GL_RGBA16F, windowWidth, windowHeight, GL_RGBA, GL_HALF_FLOAT, true);
 
 	CreateAttachment(renderTarget0, GL_RGBA16F, windowWidth, windowHeight, GL_RGBA, GL_HALF_FLOAT, true);
 	CreateAttachment(depthTarget, GL_DEPTH24_STENCIL8, windowWidth, windowHeight, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, true);
