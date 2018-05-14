@@ -252,7 +252,7 @@ void CMyApp::RenderObjects(CUniformTable& table)
 	table.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
 	table.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
 	table.SetVector4fv("baseColor", 1, &basecolor1.x);
-	table.SetFloat("roughness", 0.15f); //0.45f);
+	table.SetFloat("roughness", 0.45f);
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL);
 
@@ -263,7 +263,7 @@ void CMyApp::RenderObjects(CUniformTable& table)
 	table.SetMatrix4fv("matWorld", 1, GL_FALSE, &world[0][0]);
 	table.SetMatrix4fv("matWorldInv", 1, GL_FALSE, &worldinv[0][0]);
 	table.SetVector4fv("baseColor", 1, &basecolor2.x);
-	table.SetFloat("roughness", 0.15f); //0.35f);
+	table.SetFloat("roughness", 0.35f);
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL);
 
@@ -381,19 +381,19 @@ void CMyApp::Render()
 		// render lights (TODO: scissor test)
 		accumTable.SetVector3fv("lightPos", 1, &lightpos1.x);
 		accumTable.SetVector3fv("lightColor", 1, &lightcolor1.x);
-		accumTable.SetFloat("luminousFlux", 2500);
+		accumTable.SetFloat("luminousFlux", 3600);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		accumTable.SetVector3fv("lightPos", 1, &lightpos2.x);
 		accumTable.SetVector3fv("lightColor", 1, &lightcolor2.x);
-		accumTable.SetFloat("luminousFlux", 2500);
+		accumTable.SetFloat("luminousFlux", 3600);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		accumTable.SetVector3fv("lightPos", 1, &lightpos3.x);
 		accumTable.SetVector3fv("lightColor", 1, &lightcolor3.x);
-		accumTable.SetFloat("luminousFlux", 2500);
+		accumTable.SetFloat("luminousFlux", 3600);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
